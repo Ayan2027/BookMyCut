@@ -7,6 +7,7 @@ import serviceRoutes from "./modules/services/service.routes.js";
 import slotRoutes from "./modules/slots/slot.routes.js";
 import bookingRoutes from "./modules/bookings/booking.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
+import walletRoutes from "./modules/wallets/wallet.routes.js";
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use("/services", serviceRoutes);
 app.use("/slots", slotRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/wallet", walletRoutes);
 
 export default app;
