@@ -1,11 +1,17 @@
-import React from 'react'
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { hydrateAuth } from "./redux/auth/authThunks";
+import Router from "./router";
+import { storage } from "./utils/storage";
 
-const App = () => {
-  return (
-    <div className='bg-gray-900'>
-      raazz
-    </div>
-  )
+export default function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (storage.getToken()) {
+      dispatch(hydrateAuth());
+    }
+  }, []);
+
+  return <Router />;
 }
-
-export default App
