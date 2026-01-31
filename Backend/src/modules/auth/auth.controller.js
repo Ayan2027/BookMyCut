@@ -17,7 +17,7 @@ export const requestOTP = async (req, res) => {
     { upsert: true }
   );
 
-  await sendMail(email, "TrimBhai OTP", `Your OTP is ${otp}`);
+  await sendMail(email, "BookMyCut OTP", `Your OTP is ${otp}`);
   res.json({ message: "OTP sent" });
 };
     
@@ -26,9 +26,10 @@ export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   const reqRow = await SignupRequest.findOne({ email });
+  
   if (!reqRow || reqRow.otp !== otp)
     return res.status(400).json({ message: "Invalid OTP" });
-
+  
   const account = await Account.create({
     email,
     passwordHash: reqRow.passwordHash,
@@ -45,7 +46,6 @@ export const verifyOTP = async (req, res) => {
 /* Login */
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
   const account = await Account.findOne({ email });
   if (!account) return res.status(400).json({ message: "Not found" });
 

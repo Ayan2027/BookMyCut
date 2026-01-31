@@ -1,10 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  login,
-  verifyOtp,
-  hydrateAuth,
-  logout
-} from "./authThunks";
+import { login, verifyOtp, hydrateAuth, logout } from "./authThunks";
 
 const initialState = {
   token: null,
@@ -25,25 +20,33 @@ const authSlice = createSlice({
       /* Login */
       .addCase(login.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.role = action.payload.user.role;
+        state.role = action.payload.role;
         state.hydrated = true;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload;
       })
 
       /* Verify OTP */
+      .addCase(verifyOtp.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(verifyOtp.fulfilled, (state, action) => {
+        state.loading = false;
         state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.role = action.payload.user.role;
+        state.role = action.payload.role;
         state.hydrated = true;
+      })
+      .addCase(verifyOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
       /* Hydrate */
