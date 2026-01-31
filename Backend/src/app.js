@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("TrimBhai API running 🚀");
+  res.send("BookMyCut API running 🚀");
 });
 
 app.use("/auth", authRoutes);

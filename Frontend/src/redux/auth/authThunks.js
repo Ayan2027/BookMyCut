@@ -5,38 +5,74 @@ import { storage } from "../../utils/storage";
 /* Request OTP */
 export const requestOtp = createAsyncThunk(
   "auth/requestOtp",
-  async (data) => {
-    await authService.requestOtp(data);
-    return data.email;
+  async (data, { rejectWithValue }) => {
+    try {
+      await authService.requestOtp(data);
+      return data.email;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to send OTP"
+      );
+    }
   }
 );
 
 /* Verify OTP */
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
-  async (data) => {
-    const res = await authService.verifyOtp(data);
-    storage.setToken(res.data.token);
-    return res.data;
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.verifyOtp(data);
+
+      // Backend returns: { token, role }
+      storage.setToken(res.data.token);
+
+      return {
+        token: res.data.token,
+        role: res.data.role
+      };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Invalid OTP"
+      );
+    }
   }
 );
 
 /* Login */
 export const login = createAsyncThunk(
   "auth/login",
-  async (data) => {
-    const res = await authService.login(data);
-    storage.setToken(res.data.token);
-    return res.data;
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.login(data);
+
+      // Backend returns: { token, role }
+      storage.setToken(res.data.token);
+
+      return {
+        token: res.data.token,
+        role: res.data.role
+      };
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Login failed"
+      );
+    }
   }
 );
 
 /* Hydrate user */
 export const hydrateAuth = createAsyncThunk(
   "auth/hydrate",
-  async () => {
-    const res = await authService.me();
-    return res.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await authService.me();
+
+      // Backend returns full user object
+      return res.data;
+    } catch (err) {
+      return rejectWithValue("Session expired");
+    }
   }
 );
 
