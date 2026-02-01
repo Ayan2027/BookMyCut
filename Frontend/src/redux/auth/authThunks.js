@@ -45,7 +45,7 @@ export const login = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await authService.login(data);
-
+      console.log("res ",res)
       // Backend returns: { token, role }
       storage.setToken(res.data.token);
 

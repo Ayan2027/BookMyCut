@@ -47,10 +47,14 @@ export const verifyOTP = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const account = await Account.findOne({ email });
+  
   if (!account) return res.status(400).json({ message: "Not found" });
 
   const ok = await bcrypt.compare(password, account.passwordHash);
+  console.log("ok ",ok)
   if (!ok) return res.status(400).json({ message: "Wrong password" });
+
+  console.log("account ",account)
 
   const token = signToken(account);
   res.json({ token, role: account.role });

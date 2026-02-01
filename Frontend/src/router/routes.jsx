@@ -34,6 +34,8 @@ import UserBookings from "../pages/user/Bookings";
 import SalonEntry from "../pages/salon/SalonEntry";
 import SalonServices from "../pages/salon/Services";
 import SalonBookings from "../pages/salon/Bookings";
+import SalonSlots from "../pages/salon/Slots";
+
 
 /* Admin Pages */
 import AdminDashboard from "../pages/admin/Dashboard";
@@ -78,6 +80,7 @@ export default function AppRoutes() {
             <Route path="/salon" element={<SalonEntry />} />
             <Route path="/salon/services" element={<SalonServices />} />
             <Route path="/salon/bookings" element={<SalonBookings />} />
+            <Route path="/salon/slots" element={<SalonSlots />} />
           </Route>
         </Route>
       </Route>
