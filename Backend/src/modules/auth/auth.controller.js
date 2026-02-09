@@ -7,6 +7,14 @@ import { sendMail } from "../../services/mail.service.js";
 /* Step 1 – Request OTP */
 export const requestOTP = async (req, res) => {
   const { email, password, role } = req.body;
+  // 1. Validate email BEFORE sending
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({
+      message: "Please enter a valid email address",
+    });
+  }
 
   const hash = await bcrypt.hash(password, 10);
   const otp = generateOTP();
@@ -14,27 +22,32 @@ export const requestOTP = async (req, res) => {
   await SignupRequest.findOneAndUpdate(
     { email },
     { email, passwordHash: hash, role, otp, expiresAt: otpExpiry() },
-    { upsert: true }
+    { upsert: true },
   );
 
-  await sendMail(email, "BookMyCut OTP", `Your OTP is ${otp}`);
+  const mailSent = await sendMail(email, "BookMyCut OTP", `Your OTP is ${otp}`);
+  if (!mailSent) {
+    return res.status(500).json({
+      message: "Unable to send OTP. Please check the email.",
+    });
+  }
   res.json({ message: "OTP sent" });
 };
-    
+
 /* Step 2 – Verify OTP */
 export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   const reqRow = await SignupRequest.findOne({ email });
-  
+
   if (!reqRow || reqRow.otp !== otp)
     return res.status(400).json({ message: "Invalid OTP" });
-  
+
   const account = await Account.create({
     email,
     passwordHash: reqRow.passwordHash,
     role: reqRow.role,
-    isVerified: true
+    isVerified: true,
   });
 
   await SignupRequest.deleteOne({ email });
@@ -47,14 +60,14 @@ export const verifyOTP = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const account = await Account.findOne({ email });
-  
+
   if (!account) return res.status(400).json({ message: "Not found" });
 
   const ok = await bcrypt.compare(password, account.passwordHash);
-  console.log("ok ",ok)
+  console.log("ok ", ok);
   if (!ok) return res.status(400).json({ message: "Wrong password" });
 
-  console.log("account ",account)
+  console.log("account ", account);
 
   const token = signToken(account);
   res.json({ token, role: account.role });

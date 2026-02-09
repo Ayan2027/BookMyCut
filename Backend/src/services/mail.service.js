@@ -1,10 +1,6 @@
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
 
-/**
- * Sends email using Gmail SMTP
- * Make sure you use Gmail App Password, not normal password
- */
 export const sendMail = async (to, subject, html) => {
   try {
     const transporter = nodemailer.createTransport({
@@ -23,8 +19,9 @@ export const sendMail = async (to, subject, html) => {
     });
 
     console.log(`OTP mail sent to ${to}`);
+    return true;
   } catch (err) {
     console.error("Mail error:", err);
-    throw new Error("Failed to send email");
+    return false;   // important
   }
 };
