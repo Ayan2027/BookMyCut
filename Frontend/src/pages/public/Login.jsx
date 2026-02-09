@@ -10,6 +10,9 @@ export default function Login() {
   const navigate = useNavigate();
 
   const { loading, error, token } = useSelector((s) => s.auth);
+  useEffect(()=>{
+    if(token)navigate("/")
+  },[token])
 
   const [form, setForm] = useState({
     email: "",
