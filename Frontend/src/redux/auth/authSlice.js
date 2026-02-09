@@ -57,9 +57,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token;
         state.role = action.payload.role;
+        state.user = action.payload.user || null;
         state.hydrated = true;
         state.error = null;
       })
+
       .addCase(verifyOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
@@ -69,9 +71,11 @@ const authSlice = createSlice({
       .addCase(hydrateAuth.fulfilled, (state, action) => {
         state.user = action.payload;
         state.role = action.payload.role;
+        state.token = storage.getToken(); // important
         state.hydrated = true;
         state.error = null;
       })
+
       .addCase(hydrateAuth.rejected, (state) => {
         state.user = null;
         state.token = null;
