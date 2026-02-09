@@ -42,6 +42,13 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import AdminSalons from "../pages/admin/Salons";
 import AdminPayments from "../pages/admin/Payments";
 
+import SalonEntry from "../pages/salon/SalonEntry";
+import Apply from "../pages/salon/Apply";
+import ApplicationStatus from "../pages/salon/ApplicationStatus";
+
+
+
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -98,6 +105,12 @@ export default function AppRoutes() {
 
       {/* FALLBACK */}
       <Route path="*" element={<NotFound />} />
+
+      <Route path="/salon" element={<SalonEntry />} />
+      <Route path="/salon/apply" element={<Apply />} />
+      <Route path="/salon/application-status" element={<ApplicationStatus />} />
+
+
     </Routes>
   );
 }
