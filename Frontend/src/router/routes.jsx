@@ -31,7 +31,6 @@ import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
 
 /* Salon Pages */
-import SalonEntry from "../pages/salon/SalonEntry";
 import SalonServices from "../pages/salon/Services";
 import SalonBookings from "../pages/salon/Bookings";
 import SalonSlots from "../pages/salon/Slots";

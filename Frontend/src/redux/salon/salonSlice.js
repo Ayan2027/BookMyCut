@@ -34,11 +34,21 @@ const salonSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+      .addCase(applySalon.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(applySalon.fulfilled, (state, action) => {
+        state.loading = false;
         state.exists = true;
         state.status = "PENDING";
         state.salon = action.payload;
       })
+      .addCase(applySalon.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error?.message || "Application failed";
+      })
+
       .addCase(updateSalon.fulfilled, (state, action) => {
         state.salon = action.payload;
       });

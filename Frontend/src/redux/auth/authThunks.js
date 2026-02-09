@@ -34,8 +34,10 @@ export const verifyOtp = createAsyncThunk(
 
       return {
         token: res.data.token,
-        role: res.data.role
+        role: res.data.role,
+        user: res.data.user
       };
+
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Invalid OTP"
@@ -50,7 +52,7 @@ export const login = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await authService.login(data);
-      console.log("res ",res)
+      console.log("res ", res)
       // Backend returns: { token, role }
       storage.setToken(res.data.token);
 

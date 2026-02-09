@@ -15,6 +15,9 @@ export const requestOTP = async (req, res) => {
       message: "Please enter a valid email address",
     });
   }
+  const account = await Account.findOne({ email });
+
+  if (account) return res.status(400).json({ message: "already account exists" });
 
   const hash = await bcrypt.hash(password, 10);
   const otp = generateOTP();
@@ -37,9 +40,10 @@ export const requestOTP = async (req, res) => {
 /* Step 2 – Verify OTP */
 export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
+  console.log("bhghg")
 
   const reqRow = await SignupRequest.findOne({ email });
-
+  console.log("reqrow", reqRow)
   if (!reqRow || reqRow.otp !== otp)
     return res.status(400).json({ message: "Invalid OTP" });
 
@@ -69,7 +73,12 @@ export const login = async (req, res) => {
 
 
   const token = signToken(account);
-  res.json({ token, role: account.role });
+  res.json({
+    token,
+    role: account.role,
+    user: account
+  });
+
 };
 
 /* Current user */

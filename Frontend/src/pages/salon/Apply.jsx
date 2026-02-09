@@ -23,7 +23,12 @@ export default function Apply() {
 
   const submit = async (e) => {
     e.preventDefault();
-    await dispatch(applySalon(form));
+
+    const res = await dispatch(applySalon(form));
+
+    if (applySalon.fulfilled.match(res)) {
+      navigate("/salon/application-status");
+    }
   };
 
   useEffect(() => {
