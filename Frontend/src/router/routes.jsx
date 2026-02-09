@@ -47,6 +47,7 @@ import Apply from "../pages/salon/Apply";
 import ApplicationStatus from "../pages/salon/ApplicationStatus";
 import Dashboard from "../pages/salon/Dashboard";
 import Wallet from "../pages/salon/Wallet";
+import Profile from "../pages/salon/Profile";
 
 
 
@@ -113,6 +114,7 @@ export default function AppRoutes() {
       <Route path="/salon/application-status" element={<ApplicationStatus />} />
       <Route path="/salon/dashboard" element={<Dashboard />} />
       <Route path="/salon/wallet" element={<Wallet />} />
+      <Route path="/salon/profile" element={<Profile />} />
 
 
     </Routes>
