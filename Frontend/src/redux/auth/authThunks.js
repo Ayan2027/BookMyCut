@@ -10,12 +10,17 @@ export const requestOtp = createAsyncThunk(
       await authService.requestOtp(data);
       return data.email;
     } catch (err) {
+      console.log("Full error:", err);
+      console.log("Backend message:", err?.response?.data);
+
       return rejectWithValue(
-        err.response?.data?.message || "Failed to send OTP"
+        err?.response?.data?.message ||
+        "Failed to send OTP"
       );
     }
   }
 );
+
 
 /* Verify OTP */
 export const verifyOtp = createAsyncThunk(
@@ -45,7 +50,7 @@ export const login = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await authService.login(data);
-
+      console.log("res ",res)
       // Backend returns: { token, role }
       storage.setToken(res.data.token);
 
