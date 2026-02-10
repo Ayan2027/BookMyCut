@@ -6,6 +6,7 @@ import slotReducer from "./slot/slotSlice";
 import salonReducer from "./salon/salonSlice";
 import bookingReducer from "./booking/bookingSlice";
 import walletReducer from "./wallet/walletSlice";
+import adminReducer from "./admin/adminSlice";
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
     ui: uiReducer,
     booking: bookingReducer,
     wallet: walletReducer,
+    admin: adminReducer, 
   },
 });
