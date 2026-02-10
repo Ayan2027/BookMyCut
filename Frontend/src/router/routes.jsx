@@ -114,7 +114,7 @@ export default function AppRoutes() {
       <Route path="/salon/dashboard" element={<Dashboard />} />
       <Route path="/salon/wallet" element={<Wallet />} />
       <Route path="/salon/profile" element={<Profile />} />
-
+      
 
     </Routes>
   );
