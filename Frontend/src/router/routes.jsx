@@ -35,7 +35,6 @@ import SalonServices from "../pages/salon/Services";
 import SalonBookings from "../pages/salon/Bookings";
 import SalonSlots from "../pages/salon/Slots";
 
-
 /* Admin Pages */
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminSalons from "../pages/admin/Salons";
@@ -48,13 +47,9 @@ import Dashboard from "../pages/salon/Dashboard";
 import Wallet from "../pages/salon/Wallet";
 import Profile from "../pages/salon/Profile";
 
-
-
-
 export default function AppRoutes() {
   return (
     <Routes>
-
       {/* SMART LANDING */}
       <Route path="/" element={<RoleRedirect />} />
 
@@ -83,13 +78,22 @@ export default function AppRoutes() {
       </Route>
 
       {/* SALON */}
+
       <Route element={<AuthGuard />}>
         <Route element={<RoleGuard role="SALON" />}>
           <Route element={<SalonLayout />}>
             <Route path="/salon" element={<SalonEntry />} />
+            <Route path="/salon/apply" element={<Apply />} />
+            <Route
+              path="/salon/application-status"
+              element={<ApplicationStatus />}
+            />
+            <Route path="/salon/dashboard" element={<Dashboard />} />
             <Route path="/salon/services" element={<SalonServices />} />
             <Route path="/salon/bookings" element={<SalonBookings />} />
             <Route path="/salon/slots" element={<SalonSlots />} />
+            <Route path="/salon/wallet" element={<Wallet />} />
+            <Route path="/salon/profile" element={<Profile />} />
           </Route>
         </Route>
       </Route>
@@ -107,15 +111,6 @@ export default function AppRoutes() {
 
       {/* FALLBACK */}
       <Route path="*" element={<NotFound />} />
-
-      <Route path="/salon" element={<SalonEntry />} />
-      <Route path="/salon/apply" element={<Apply />} />
-      <Route path="/salon/application-status" element={<ApplicationStatus />} />
-      <Route path="/salon/dashboard" element={<Dashboard />} />
-      <Route path="/salon/wallet" element={<Wallet />} />
-      <Route path="/salon/profile" element={<Profile />} />
-      
-
     </Routes>
   );
 }
