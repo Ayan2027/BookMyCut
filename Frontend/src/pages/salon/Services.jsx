@@ -13,8 +13,10 @@ export default function Services() {
   const [form, setForm] = useState({
     name: "",
     price: "",
-    duration: ""
+    durationMinutes: "",
+    isHomeService: false
   });
+
 
   useEffect(() => {
     dispatch(fetchMyServices());
@@ -23,10 +25,22 @@ export default function Services() {
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   const submit = () => {
-    if (!form.name || !form.price || !form.duration) return;
-    dispatch(createService(form));
-    setForm({ name: "", price: "", duration: "" });
-  };
+  if (!form.name || !form.price || !form.durationMinutes) return;
+
+  dispatch(createService({
+    ...form,
+    price: Number(form.price),
+    durationMinutes: Number(form.durationMinutes)
+  }));
+
+  setForm({
+    name: "",
+    price: "",
+    durationMinutes: "",
+    isHomeService: false
+  });
+};
+
 
   return (
     <div className="space-y-6">
@@ -60,9 +74,10 @@ export default function Services() {
           <input
             className="border p-2 rounded"
             placeholder="Duration (min)"
-            value={form.duration}
-            onChange={(e) => update("duration", e.target.value)}
+            value={form.durationMinutes}
+            onChange={(e) => update("durationMinutes", e.target.value)}
           />
+
         </div>
 
         <button
@@ -104,7 +119,8 @@ function ServiceCard({ service, onDelete }) {
     <div className="border rounded-2xl p-4 shadow-sm">
       <h4 className="font-semibold">{service.name}</h4>
       <p className="text-gray-500">₹{service.price}</p>
-      <p className="text-gray-500">{service.duration} minutes</p>
+      <p className="text-gray-500">{service.durationMinutes} minutes</p>
+
 
       <button
         onClick={onDelete}
