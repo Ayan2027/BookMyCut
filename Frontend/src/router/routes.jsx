@@ -9,7 +9,7 @@ import AdminLayout from "../layouts/AdminLayout";
 /* Guards */
 import AuthGuard from "../guards/AuthGuard";
 import RoleGuard from "../guards/RoleGuard";
-
+import SalonApprovedGuard from "../guards/ApprovedSalonGuard";
 /* Smart Redirect */
 import RoleRedirect from "./RoleRedirect";
 
@@ -82,18 +82,18 @@ export default function AppRoutes() {
       <Route element={<AuthGuard />}>
         <Route element={<RoleGuard role="SALON" />}>
           <Route element={<SalonLayout />}>
+            {/* Entry page */}
             <Route path="/salon" element={<SalonEntry />} />
-            <Route path="/salon/apply" element={<Apply />} />
-            <Route
-              path="/salon/application-status"
-              element={<ApplicationStatus />}
-            />
-            <Route path="/salon/dashboard" element={<Dashboard />} />
-            <Route path="/salon/services" element={<SalonServices />} />
-            <Route path="/salon/bookings" element={<SalonBookings />} />
-            <Route path="/salon/slots" element={<SalonSlots />} />
-            <Route path="/salon/wallet" element={<Wallet />} />
-            <Route path="/salon/profile" element={<Profile />} />
+
+            {/* Approved-only features */}
+            <Route element={<SalonApprovedGuard />}>
+              <Route path="/salon/dashboard" element={<Dashboard />} />
+              <Route path="/salon/services" element={<SalonServices />} />
+              <Route path="/salon/bookings" element={<SalonBookings />} />
+              <Route path="/salon/slots" element={<SalonSlots />} />
+              <Route path="/salon/wallet" element={<Wallet />} />
+              <Route path="/salon/profile" element={<Profile />} />
+            </Route>
           </Route>
         </Route>
       </Route>
