@@ -8,24 +8,19 @@ import {
 
 export default function Slots() {
   const dispatch = useDispatch();
-  const { list } = useSelector((s) => s.slot);
+  const { list, loading } = useSelector((s) => s.slot);
 
-  const [form, setForm] = useState({
-    date: "",
-    start: "09:00",
-    end: "18:00",
-    interval: 30
-  });
+  const [date, setDate] = useState("");
 
   useEffect(() => {
     dispatch(fetchMySlots());
   }, [dispatch]);
 
-  const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
   const submit = () => {
-    if (!form.date) return;
-    dispatch(generateSlots(form));
+    if (!date) return;
+
+    dispatch(generateSlots({ date }))
+      .then(() => dispatch(fetchMySlots()));
   };
 
   return (
@@ -42,40 +37,17 @@ export default function Slots() {
       <div className="bg-white shadow rounded-2xl p-6 space-y-3">
         <h3 className="font-semibold">Generate Slots</h3>
 
-        <div className="grid grid-cols-4 gap-3">
-          <input
-            type="date"
-            className="border p-2 rounded"
-            onChange={(e) => update("date", e.target.value)}
-          />
-
-          <input
-            type="time"
-            className="border p-2 rounded"
-            value={form.start}
-            onChange={(e) => update("start", e.target.value)}
-          />
-
-          <input
-            type="time"
-            className="border p-2 rounded"
-            value={form.end}
-            onChange={(e) => update("end", e.target.value)}
-          />
-
-          <input
-            type="number"
-            className="border p-2 rounded"
-            value={form.interval}
-            onChange={(e) => update("interval", e.target.value)}
-          />
-        </div>
+        <input
+          type="date"
+          className="border p-2 rounded"
+          onChange={(e) => setDate(e.target.value)}
+        />
 
         <button
           onClick={submit}
           className="bg-black text-white px-4 py-2 rounded"
         >
-          Generate Slots
+          Generate 9AM–8PM Slots
         </button>
       </div>
 
@@ -83,7 +55,9 @@ export default function Slots() {
       <div className="bg-white shadow rounded-2xl p-6">
         <h3 className="font-semibold mb-4">Generated Slots</h3>
 
-        {list.length === 0 && (
+        {loading && <p>Loading...</p>}
+
+        {!loading && list.length === 0 && (
           <p className="text-gray-500">
             No slots generated yet.
           </p>
@@ -106,7 +80,13 @@ export default function Slots() {
 function SlotCard({ slot, onDelete }) {
   return (
     <div className="border rounded-xl p-3 text-center">
-      <p className="font-semibold">{slot.time}</p>
+      <p className="font-semibold">
+        {slot.startTime} — {slot.endTime}
+      </p>
+
+      <p className="text-xs text-gray-500">
+        {slot.date}
+      </p>
 
       <button
         onClick={onDelete}

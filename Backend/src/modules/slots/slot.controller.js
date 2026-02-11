@@ -1,11 +1,11 @@
 import Slot from "./slot.model.js";
 
-/* Generate slots */
 export const generateSlots = async (req, res) => {
-  const { date, startTime, endTime, intervalMinutes } = req.body;
+  const { date } = req.body;
 
-  const slots = [];
-  let current = startTime;
+  const startTime = "09:00";
+  const endTime = "20:00";
+  const intervalMinutes = 30;
 
   const toMinutes = (time) => {
     const [h, m] = time.split(":").map(Number);
@@ -21,6 +21,8 @@ export const generateSlots = async (req, res) => {
   let cur = toMinutes(startTime);
   const end = toMinutes(endTime);
 
+  const slots = [];
+
   while (cur + intervalMinutes <= end) {
     slots.push({
       salon: req.salon._id,
@@ -28,33 +30,19 @@ export const generateSlots = async (req, res) => {
       startTime: toTime(cur),
       endTime: toTime(cur + intervalMinutes)
     });
+
     cur += intervalMinutes;
   }
 
   try {
     const created = await Slot.insertMany(slots, { ordered: false });
-    res.json({ created: created.length });
-  } catch (err) {
-    res.json({ message: "Some slots already existed" });
+    res.json({
+      message: "Slots generated",
+      created: created.length
+    });
+  } catch {
+    res.json({
+      message: "Slots already exist for this date"
+    });
   }
-};
-
-/* Get my slots */
-export const getMySlots = async (req, res) => {
-  const slots = await Slot.find({ salon: req.salon._id });
-  res.json(slots);
-};
-
-/* Delete slot */
-export const deleteSlot = async (req, res) => {
-  const result = await Slot.findOneAndDelete({
-    _id: req.params.slotId,
-    salon: req.salon._id
-  });
-
-  if (!result) {
-    return res.status(404).json({ message: "Slot not found" });
-  }
-
-  res.json({ message: "Slot deleted" });
 };
