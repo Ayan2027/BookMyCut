@@ -9,9 +9,14 @@ export default function VerifyOtp() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { error, loading } = useSelector((s) => s.auth);
+  const { error, loading, token } = useSelector((s) => s.auth);
 
   const [otp, setOtp] = useState("");
+
+  // Redirect if already logged in
+  if (token) {
+    return <Navigate to="/" replace />;
+  }
 
   // Block page on refresh
   if (!location.state?.email) {
@@ -29,13 +34,7 @@ export default function VerifyOtp() {
 
     if (verifyOtp.fulfilled.match(res)) {
       toast.success("Signup successful");
-
-      // redirect based on role
-      if (res.payload.role === "SALON") {
-        navigate("/salon");
-      } else {
-        navigate("/");
-      }
+      navigate("/", { replace: true });
     }
   };
 

@@ -9,10 +9,9 @@ export const applySalon = async (req, res) => {
     }
 
     const salon = await Salon.create({
-      ownerAccountId: req.user._id,
-      ...req.body
+      owner: req.user._id,
+      ...req.body,
     });
-
 
     res.json({ message: "Salon application submitted", salon });
   } catch (err) {
@@ -20,10 +19,18 @@ export const applySalon = async (req, res) => {
   }
 };
 
-/* Get own salon */
 export const getMySalon = async (req, res) => {
   const salon = await Salon.findOne({ owner: req.user._id });
-  res.json(salon);
+
+  if (!salon) {
+    return res.json({ exists: false });
+  }
+
+  res.json({
+    exists: true,
+    status: salon.status,
+    salon,
+  });
 };
 
 /* Update salon */
@@ -31,7 +38,7 @@ export const updateMySalon = async (req, res) => {
   const salon = await Salon.findOneAndUpdate(
     { owner: req.user._id },
     req.body,
-    { new: true }
+    { new: true },
   );
 
   res.json(salon);

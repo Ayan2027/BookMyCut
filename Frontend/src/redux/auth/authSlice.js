@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, verifyOtp, hydrateAuth, logout, requestOtp } from "./authThunks";
+import { login, verifyOtp, logout, requestOtp } from "./authThunks";
+import { storage } from "../../utils/storage";
 
 const initialState = {
-  token: null,
+  token: storage.getToken() || null,
   user: null,
-  role: null,
+  role: storage.getRole() || null,
   loading: false,
-  hydrated: false,
   error: null
 };
 
@@ -24,7 +24,6 @@ const authSlice = createSlice({
       })
       .addCase(requestOtp.fulfilled, (state) => {
         state.loading = false;
-        state.error = null;
       })
       .addCase(requestOtp.rejected, (state, action) => {
         state.loading = false;
@@ -40,7 +39,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.token = action.payload.token;
         state.role = action.payload.role;
-        state.hydrated = true;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
@@ -58,33 +56,21 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.role = action.payload.role;
         state.user = action.payload.user || null;
-        state.hydrated = true;
         state.error = null;
       })
-
       .addCase(verifyOtp.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* Hydrate */
-      .addCase(hydrateAuth.fulfilled, (state, action) => {
-        state.user = action.payload;
-        state.role = action.payload.role;
-        state.token = storage.getToken(); // important
-        state.hydrated = true;
-        state.error = null;
-      })
-
-      .addCase(hydrateAuth.rejected, (state) => {
-        state.user = null;
-        state.token = null;
-        state.role = null;
-        state.hydrated = true;
-      })
-
       /* Logout */
-      .addCase(logout.fulfilled, () => initialState);
+      .addCase(logout.fulfilled, () => ({
+        token: null,
+        user: null,
+        role: null,
+        loading: false,
+        error: null
+      }));
   }
 });
 
