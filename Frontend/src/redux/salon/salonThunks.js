@@ -5,6 +5,7 @@ export const fetchMySalon = createAsyncThunk(
   "salon/fetchMy",
   async () => {
     const res = await salonService.getMySalon();
+    console.log("res ",res)
     return res.data;
   }
 );

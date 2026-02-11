@@ -3,10 +3,12 @@ import Salon from "./salon.model.js";
 /* Salon owner applies */
 export const applySalon = async (req, res) => {
   try {
+    console.log("req ",req.user._id)
     const exists = await Salon.findOne({ owner: req.user._id });
     if (exists) {
       return res.status(400).json({ message: "Already applied" });
     }
+    console.log("req ",req.user._id)
 
     const salon = await Salon.create({
       owner: req.user._id,
@@ -20,6 +22,7 @@ export const applySalon = async (req, res) => {
 };
 
 export const getMySalon = async (req, res) => {
+  console.log(req.user._id)
   const salon = await Salon.findOne({ owner: req.user._id });
 
   if (!salon) {
