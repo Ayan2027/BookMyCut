@@ -14,7 +14,6 @@ export const applySalon = async (req, res) => {
       owner: req.user._id,
       ...req.body,
     });
-    console.log("salon ",salon)
 
     res.json({ message: "Salon application submitted", salon });
   } catch (err) {
@@ -25,7 +24,6 @@ export const applySalon = async (req, res) => {
 export const getMySalon = async (req, res) => {
   console.log(req.user._id)
   const salon = await Salon.findOne({ owner: req.user._id });
-  console.log("salon ",salon)
 
   if (!salon) {
     return res.json({ exists: false });
