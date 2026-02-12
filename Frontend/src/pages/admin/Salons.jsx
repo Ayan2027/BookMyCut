@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   fetchAdminOverview,
   approveSalon,
@@ -10,7 +10,6 @@ import { adminService } from "../../services/admin.service";
 
 export default function AdminSalons() {
   const dispatch = useDispatch();
-  const { pendingList } = useSelector((s) => s.admin);
 
   const [status, setStatus] = useState("PENDING");
   const [list, setList] = useState([]);
@@ -20,8 +19,13 @@ export default function AdminSalons() {
   }, [status]);
 
   const load = async () => {
-    const res = await adminService.getPendingSalons();
-    setList(res.data);
+    try {
+      const res = await adminService.getSalonsByStatus(status);
+      setList(res.data);
+    } catch (err) {
+      console.error("Failed to load salons:", err);
+      setList([]);
+    }
   };
 
   const approve = async (id) => {
@@ -31,7 +35,9 @@ export default function AdminSalons() {
   };
 
   const reject = async (id) => {
-    await dispatch(rejectSalon({ salonId: id }));
+    await dispatch(
+      rejectSalon({ salonId: id, reason: "Rejected by admin" })
+    );
     load();
     dispatch(fetchAdminOverview());
   };

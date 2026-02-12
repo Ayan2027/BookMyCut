@@ -1,15 +1,28 @@
 // src/pages/admin/Dashboard.jsx
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAdminOverview, approveSalon, rejectSalon, suspendSalon } from "../../redux/admin/adminThunks";
+import {
+  fetchAdminOverview,
+  approveSalon,
+  rejectSalon,
+  suspendSalon,
+} from "../../redux/admin/adminThunks";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { pendingList, pendingCount, salonsCount, bookingsCount, paymentsCount, loading } = useSelector(s => s.admin);
+  const {
+    pendingList,
+    pendingCount,
+    salonsCount,
+    bookingsCount,
+    paymentsCount,
+    loading,
+  } = useSelector((s) => s.admin);
 
   useEffect(() => {
+    console.log("Admin dashboard mounted");
     dispatch(fetchAdminOverview());
   }, [dispatch]);
 
@@ -19,7 +32,9 @@ export default function AdminDashboard() {
 
   const handleReject = (id) => {
     // optional: prompt for reason later; for now simple reject
-    dispatch(rejectSalon({ salonId: id, reason: "Rejected by admin" })).then(() => dispatch(fetchAdminOverview()));
+    dispatch(rejectSalon({ salonId: id, reason: "Rejected by admin" })).then(
+      () => dispatch(fetchAdminOverview()),
+    );
   };
 
   const handleSuspend = (id) => {
@@ -45,7 +60,10 @@ export default function AdminDashboard() {
       <div className="bg-white shadow rounded-2xl p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Recent pending applications</h2>
-          <button className="text-sm text-blue-600" onClick={() => navigate("/admin/salons")}>
+          <button
+            className="text-sm text-blue-600"
+            onClick={() => navigate("/admin/salons")}
+          >
             View all applications →
           </button>
         </div>
@@ -58,17 +76,40 @@ export default function AdminDashboard() {
 
         <div className="space-y-3">
           {pendingList.map((s) => (
-            <div key={s._id} className="border rounded-lg p-4 flex justify-between items-center">
+            <div
+              key={s._id}
+              className="border rounded-lg p-4 flex justify-between items-center"
+            >
               <div>
                 <p className="font-semibold">{s.name}</p>
-                <p className="text-sm text-gray-500">{s.address} • {s.city}</p>
-                <p className="text-sm text-gray-500">Owner: {s.ownerEmail || s.ownerName || s.ownerAccountId || "—"}</p>
+                <p className="text-sm text-gray-500">
+                  {s.address} • {s.city}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Owner:{" "}
+                  {s.ownerEmail || s.ownerName || s.ownerAccountId || "—"}
+                </p>
               </div>
 
               <div className="flex gap-2">
-                <button onClick={() => handleApprove(s._id)} className="bg-green-600 text-white px-3 py-1 rounded">Approve</button>
-                <button onClick={() => handleReject(s._id)} className="bg-red-500 text-white px-3 py-1 rounded">Reject</button>
-                <button onClick={() => handleSuspend(s._id)} className="bg-yellow-600 text-white px-3 py-1 rounded">Suspend</button>
+                <button
+                  onClick={() => handleApprove(s._id)}
+                  className="bg-green-600 text-white px-3 py-1 rounded"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleReject(s._id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleSuspend(s._id)}
+                  className="bg-yellow-600 text-white px-3 py-1 rounded"
+                >
+                  Suspend
+                </button>
               </div>
             </div>
           ))}
