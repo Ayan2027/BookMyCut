@@ -22,6 +22,13 @@ export default function SalonEntry() {
   if (status === "APPROVED") {
     return <Dashboard />;
   }
+  if(status === "SUSPENDED"){
+    return(
+      <>
+       <div>your salon is suspended</div>
+      </>
+    )
+  }
 
   return <div>Unknown salon state</div>;
 }
