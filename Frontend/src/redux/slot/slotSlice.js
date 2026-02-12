@@ -1,13 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {
-  fetchMySlots,
-  generateSlots,
-  deleteSlot
-} from "./slotThunks";
+import { fetchMySlots, generateSlots, deleteSlot } from "./slotThunks";
 
 const initialState = {
   list: [],
-  loading: false
+  loading: false,
 };
 
 const slotSlice = createSlice({
@@ -18,13 +14,13 @@ const slotSlice = createSlice({
       .addCase(fetchMySlots.fulfilled, (state, action) => {
         state.list = action.payload;
       })
-      .addCase(generateSlots.fulfilled, (state, action) => {
-        state.list = action.payload;
+      .addCase(generateSlots.fulfilled, (state) => {
+        // no direct update
       })
       .addCase(deleteSlot.fulfilled, (state, action) => {
-        state.list = state.list.filter(s => s._id !== action.payload);
+        state.list = state.list.filter((s) => s._id !== action.payload);
       });
-  }
+  },
 });
 
 export default slotSlice.reducer;
