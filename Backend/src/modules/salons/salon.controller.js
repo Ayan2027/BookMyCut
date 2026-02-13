@@ -48,3 +48,15 @@ export const updateMySalon = async (req, res) => {
 
   res.json(salon);
 };
+
+
+export const getApprovedSalons = async (req, res) => {
+  try {
+    const salons = await Salon.find({ status: "APPROVED" })
+      .select("name city address rating location");
+      console.log("salons ",salons)
+    res.json(salons);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
