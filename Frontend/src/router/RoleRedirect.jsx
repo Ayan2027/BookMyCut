@@ -7,7 +7,7 @@ export default function RoleRedirect() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (role === "USER") navigate("/app", { replace: true });
+    if (role === "USER") navigate("/app/salons", { replace: true });
     else if (role === "SALON") navigate("/salon", { replace: true });
     else if (role === "ADMIN") navigate("/admin", { replace: true });
     else navigate("/login", { replace: true });

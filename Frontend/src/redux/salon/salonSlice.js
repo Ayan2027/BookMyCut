@@ -2,13 +2,15 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchMySalon,
   applySalon,
-  updateSalon
+  updateSalon,
+  fetchSalons
 } from "./salonThunks";
 
 const initialState = {
   exists: false,
   status: null,
   salon: null,
+  salons: [],
   loading: false,
   error: null
 };
@@ -51,7 +53,18 @@ const salonSlice = createSlice({
 
       .addCase(updateSalon.fulfilled, (state, action) => {
         state.salon = action.payload;
+      })
+      .addCase(fetchSalons.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchSalons.fulfilled, (state, action) => {
+        state.loading = false;
+        state.salons = action.payload;
+      })
+      .addCase(fetchSalons.rejected, (state) => {
+        state.loading = false;
       });
+
   }
 });
 

@@ -26,3 +26,11 @@ export const updateSalon = createAsyncThunk(
     return res.data;
   }
 );
+
+export const fetchSalons = createAsyncThunk(
+  "salon/fetchAll",
+  async () => {
+    const res = await salonService.getAll();
+    return res.data;
+  }
+);
