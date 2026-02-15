@@ -10,6 +10,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import AuthGuard from "../guards/AuthGuard";
 import RoleGuard from "../guards/RoleGuard";
 import SalonApprovedGuard from "../guards/ApprovedSalonGuard";
+
 /* Smart Redirect */
 import RoleRedirect from "./RoleRedirect";
 
@@ -19,8 +20,6 @@ import Signup from "../pages/public/Signup";
 import VerifyOtp from "../pages/public/VerifyOtp";
 import Salons from "../pages/public/Salons";
 import SalonDetails from "../pages/public/SalonDetails";
-import Search from "../pages/public/Search";
-import Nearby from "../pages/public/Nearby";
 
 /* System Pages */
 import Forbidden from "../pages/system/Forbidden";
@@ -29,28 +28,28 @@ import NotFound from "../pages/system/NotFound";
 /* User Pages */
 import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
+import BookService from "../pages/user/BookService";
+import BookSlot from "../pages/user/BookSlot";
+
 
 /* Salon Pages */
 import SalonServices from "../pages/salon/Services";
 import SalonBookings from "../pages/salon/Bookings";
 import SalonSlots from "../pages/salon/Slots";
+import SalonEntry from "../pages/salon/SalonEntry";
+import Dashboard from "../pages/salon/Dashboard";
+import Wallet from "../pages/salon/Wallet";
+import Profile from "../pages/salon/Profile";
 
 /* Admin Pages */
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminSalons from "../pages/admin/Salons";
 import AdminPayments from "../pages/admin/Payments";
 
-import SalonEntry from "../pages/salon/SalonEntry";
-import Apply from "../pages/salon/Apply";
-import ApplicationStatus from "../pages/salon/ApplicationStatus";
-import Dashboard from "../pages/salon/Dashboard";
-import Wallet from "../pages/salon/Wallet";
-import Profile from "../pages/salon/Profile";
-
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* SMART LANDING */}
+      {/* LANDING */}
       <Route path="/" element={<RoleRedirect />} />
 
       {/* PUBLIC */}
@@ -60,8 +59,6 @@ export default function AppRoutes() {
         <Route path="/verify-otp" element={<VerifyOtp />} />
 
         <Route path="/salons" element={<Salons />} />
-        <Route path="/salons/search" element={<Search />} />
-        <Route path="/salons/nearby" element={<Nearby />} />
         <Route path="/salons/:salonId" element={<SalonDetails />} />
       </Route>
 
@@ -73,19 +70,22 @@ export default function AppRoutes() {
           <Route element={<UserLayout />}>
             <Route path="/app" element={<UserDashboard />} />
             <Route path="/app/bookings" element={<UserBookings />} />
+
+            <Route path="/app/salons" element={<Salons />} />
+            <Route path="/app/salons/:salonId" element={<SalonDetails />} />
+            <Route path="/app/salons/:salonId/services" element={<BookService />} />
+            <Route path="/app/salons/:salonId/slots" element={<BookSlot />} />
           </Route>
         </Route>
       </Route>
 
-      {/* SALON */}
 
+      {/* SALON */}
       <Route element={<AuthGuard />}>
         <Route element={<RoleGuard role="SALON" />}>
           <Route element={<SalonLayout />}>
-            {/* Entry page */}
             <Route path="/salon" element={<SalonEntry />} />
 
-            {/* Approved-only features */}
             <Route element={<SalonApprovedGuard />}>
               <Route path="/salon/dashboard" element={<Dashboard />} />
               <Route path="/salon/services" element={<SalonServices />} />
