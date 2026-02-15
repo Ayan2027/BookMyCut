@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -13,7 +13,6 @@ import {
   verifyPaymentAPI
 } from "../../services/payment.service";
 
-
 import {
   setService,
   setSlot,
@@ -21,11 +20,13 @@ import {
   resetBooking
 } from "../../redux/booking/bookingSlice";
 
-
 export default function SalonDetails() {
   const { salonId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [processing, setProcessing] = useState(false);
+  const [statusText, setStatusText] = useState("");
 
   const {
     services,
@@ -40,45 +41,40 @@ export default function SalonDetails() {
     dispatch(fetchServicesBySalon(salonId));
   }, [dispatch, salonId]);
 
-  // fetch slots when date changes
   useEffect(() => {
     if (selectedService && selectedDate) {
-      dispatch(
-        fetchSlotsBySalon({
-          salonId,
-          date: selectedDate
-        })
-      );
+      dispatch(fetchSlotsBySalon({ salonId, date: selectedDate }));
     }
   }, [selectedService, selectedDate, dispatch, salonId]);
-  const confirmBooking = async () => {
-    console.log("BUTTON CLICKED");
 
+  const confirmBooking = async () => {
     try {
-      // 1. Create booking
+      setProcessing(true);
+      setStatusText("Creating booking...");
+
       const booking = await dispatch(
         createBooking({
-          salonId: salonId,
+          salonId,
           slotId: selectedSlot._id,
           services: [selectedService._id],
           bookingType: "IN_SALON"
         })
       ).unwrap();
 
-      console.log("BOOKING CREATED:", booking);
+      setStatusText("Preparing payment...");
 
-      // 2. Load Razorpay SDK
       const razorpayLoaded = await loadRazorpay();
       if (!razorpayLoaded) {
         alert("Payment SDK failed to load");
+        setProcessing(false);
         return;
       }
 
-      // 3. Create payment order
       const { data } = await createOrderAPI(booking._id);
       const { order } = data;
 
-      // 4. Open Razorpay checkout
+      setStatusText("Opening payment...");
+
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: order.amount,
@@ -87,11 +83,18 @@ export default function SalonDetails() {
         order_id: order.id,
 
         handler: async function (response) {
-          // 5. Verify payment
+          setStatusText("Verifying payment...");
           await verifyPaymentAPI(response);
 
           dispatch(resetBooking());
           navigate("/app/bookings/success");
+        },
+
+        modal: {
+          ondismiss: () => {
+            setProcessing(false);
+            setStatusText("Payment cancelled");
+          }
         }
       };
 
@@ -99,7 +102,9 @@ export default function SalonDetails() {
       rzp.open();
 
     } catch (err) {
-      console.log("BOOKING ERROR:", err);
+      console.log(err);
+      alert("Something went wrong");
+      setProcessing(false);
     }
   };
 
@@ -115,7 +120,7 @@ export default function SalonDetails() {
 
         <div className="bg-white border rounded-2xl p-6 space-y-6">
 
-          {/* Step 1: Services */}
+          {/* Services */}
           <div>
             <h2 className="text-lg font-semibold mb-4">
               1. Choose a Service
@@ -125,10 +130,11 @@ export default function SalonDetails() {
               {services.map((s) => (
                 <div
                   key={s._id}
-                  className={`border rounded-xl p-4 cursor-pointer ${selectedService?._id === s._id
-                    ? "border-black bg-gray-100"
-                    : ""
-                    }`}
+                  className={`border rounded-xl p-4 cursor-pointer ${
+                    selectedService?._id === s._id
+                      ? "border-black bg-gray-100"
+                      : ""
+                  }`}
                   onClick={() => {
                     dispatch(setService(s));
                     dispatch(setSlot(null));
@@ -141,7 +147,7 @@ export default function SalonDetails() {
             </div>
           </div>
 
-          {/* Step 2: Date */}
+          {/* Date */}
           {selectedService && (
             <div>
               <h2 className="text-lg font-semibold mb-2">
@@ -159,7 +165,7 @@ export default function SalonDetails() {
             </div>
           )}
 
-          {/* Step 3: Slots */}
+          {/* Slots */}
           {selectedService && selectedDate && (
             <div>
               <h2 className="text-lg font-semibold mb-4">
@@ -170,10 +176,11 @@ export default function SalonDetails() {
                 {slots.map((slot) => (
                   <button
                     key={slot._id}
-                    className={`border p-2 rounded ${selectedSlot?._id === slot._id
-                      ? "border-black bg-gray-100"
-                      : ""
-                      }`}
+                    className={`border p-2 rounded ${
+                      selectedSlot?._id === slot._id
+                        ? "border-black bg-gray-100"
+                        : ""
+                    }`}
                     onClick={() => dispatch(setSlot(slot))}
                   >
                     {slot.startTime}
@@ -183,24 +190,30 @@ export default function SalonDetails() {
             </div>
           )}
 
-          {/* Step 4: Book button */}
+          {/* Button */}
           <div className="pt-4 border-t">
             <button
               disabled={
+                processing ||
                 !selectedService ||
                 !selectedDate ||
                 !selectedSlot
               }
               onClick={confirmBooking}
-              className={`px-6 py-3 rounded text-white ${selectedService &&
-                selectedDate &&
-                selectedSlot
-                ? "bg-black"
-                : "bg-gray-400 cursor-not-allowed"
-                }`}
+              className={`px-6 py-3 rounded text-white ${
+                processing
+                  ? "bg-gray-500"
+                  : "bg-black"
+              }`}
             >
-              Book and Pay
+              {processing ? "Processing..." : "Book and Pay"}
             </button>
+
+            {statusText && (
+              <p className="text-sm text-gray-500 mt-2">
+                {statusText}
+              </p>
+            )}
           </div>
 
         </div>
