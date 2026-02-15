@@ -114,7 +114,7 @@ export default function SalonDetails() {
 
         <div className="bg-white border rounded-2xl p-6">
           <h1 className="text-2xl font-semibold">
-            Book Appointment
+            Book Service
           </h1>
         </div>
 
