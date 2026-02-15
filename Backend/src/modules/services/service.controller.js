@@ -45,3 +45,16 @@ export const deleteService = async (req, res) => {
   res.json({ message: "Service deleted" });
 };
 
+
+/* Public: get services by salon */
+export const getServicesBySalon = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+
+    const services = await Service.find({ salon: salonId });
+
+    res.json(services);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

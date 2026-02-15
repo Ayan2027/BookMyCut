@@ -28,9 +28,8 @@ import NotFound from "../pages/system/NotFound";
 /* User Pages */
 import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
-import BookService from "../pages/user/BookService";
-import BookSlot from "../pages/user/BookSlot";
-
+import BookFlow from "../pages/user/BookFlow";
+import BookingSuccess from "../pages/user/BookingSuccess";
 
 /* Salon Pages */
 import SalonServices from "../pages/salon/Services";
@@ -65,6 +64,7 @@ export default function AppRoutes() {
       <Route path="/403" element={<Forbidden />} />
 
       {/* USER */}
+
       <Route element={<AuthGuard />}>
         <Route element={<RoleGuard role="USER" />}>
           <Route element={<UserLayout />}>
@@ -73,12 +73,13 @@ export default function AppRoutes() {
 
             <Route path="/app/salons" element={<Salons />} />
             <Route path="/app/salons/:salonId" element={<SalonDetails />} />
-            <Route path="/app/salons/:salonId/services" element={<BookService />} />
-            <Route path="/app/salons/:salonId/slots" element={<BookSlot />} />
+
+            {/* NEW BOOK FLOW */}
+            <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
+            <Route path="/app/bookings/success" element={<BookingSuccess />} />
           </Route>
         </Route>
       </Route>
-
 
       {/* SALON */}
       <Route element={<AuthGuard />}>
