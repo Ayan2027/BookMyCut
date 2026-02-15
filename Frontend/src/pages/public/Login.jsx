@@ -3,30 +3,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../redux/auth/authThunks";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Fingerprint, ArrowRight, Loader2 } from "lucide-react";
 
 export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { loading, error, token } = useSelector((s) => s.auth);
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Show error toast
   useEffect(() => {
     if (error) toast.error(error);
   }, [error]);
 
-  // On successful login
   useEffect(() => {
     if (token) {
-      toast.success("Login successful");
+      toast.success("Authentication Successful");
       navigate("/");
     }
   }, [token, navigate]);
@@ -37,75 +30,118 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
-        
-        {/* Title */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">QuickTrim</h1>
-          <p className="text-gray-500 text-sm">
-            Salon services booking platform
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#030303] px-4 relative overflow-hidden">
+      
+      {/* 1. ATMOSPHERIC BACKDROP */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-violet-600/10 blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] rounded-full animate-pulse delay-700" />
+      </div>
 
-        <form onSubmit={submit} className="space-y-4">
+      <div className="w-full max-w-[440px] relative group">
+        
+        {/* 2. OUTER GLOW EFFECT */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/20 to-blue-600/20 rounded-[2.5rem] blur-2xl group-hover:opacity-100 transition duration-1000 opacity-50"></div>
+
+        <div className="relative bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 shadow-2xl">
           
-          {/* Email */}
-          <div>
-            <label className="text-sm text-gray-600">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              placeholder="Enter your email"
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-              onChange={(e) =>
-                setForm({ ...form, email: e.target.value })
-              }
-            />
+          {/* 3. LOGO & BRANDING */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 mb-6 group-hover:rotate-[10deg] transition-transform duration-500">
+              <Fingerprint className="text-violet-400" size={28} />
+            </div>
+            <h1 className="text-5xl font-black tracking-tighter italic bg-gradient-to-b from-white to-zinc-600 bg-clip-text text-transparent">
+              QUICKTRIM
+            </h1>
+            <p className="text-zinc-500 font-mono text-[10px] tracking-[0.4em] mt-2 uppercase">
+              Terminal Access v2.0
+            </p>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="text-sm text-gray-600">Password</label>
+          {/* 4. AUTH FORM */}
+          <form onSubmit={submit} className="space-y-6">
+            
+            <EliteInput 
+              label="Email Address"
+              type="email"
+              placeholder="operator@quicktrim.io"
+              icon={<Mail size={18} />}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
 
             <div className="relative">
-              <input
+              <EliteInput 
+                label="Secure Password"
                 type={showPassword ? "text" : "password"}
-                required
+                placeholder="••••••••"
+                icon={<Lock size={18} />}
                 value={form.password}
-                placeholder="Enter your password"
-                className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black pr-12"
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
-
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-500 hover:text-black"
+                className="absolute right-4 bottom-4 text-zinc-600 hover:text-white transition-colors p-1"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+
+            {/* 5. ACTION BUTTON */}
+            <button
+              disabled={loading}
+              className="group relative w-full h-14 mt-4 overflow-hidden rounded-2xl bg-white text-black font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-blue-500 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+              <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-white transition-colors">
+                {loading ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <>
+                    Authorize
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </span>
+            </button>
+          </form>
+
+          {/* 6. SECONDARY NAVIGATION */}
+          <div className="mt-8 pt-8 border-t border-white/5 text-center">
+            <p className="text-sm text-zinc-500 font-medium">
+              Awaiting credentials?{" "}
+              <Link to="/signup" className="text-white hover:text-violet-400 transition-colors underline underline-offset-4">
+                Create Identity
+              </Link>
+            </p>
           </div>
 
-          <button
-            disabled={loading}
-            className="w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-900 transition"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          New to QuickTrim?{" "}
-          <Link to="/signup" className="text-blue-500 hover:underline">
-            Sign up
-          </Link>
-        </p>
-
+// Sub-component: Advanced Ghost Input
+function EliteInput({ label, type, placeholder, icon, value, onChange }) {
+  return (
+    <div className="space-y-2 group/input">
+      <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 ml-1 group-focus-within/input:text-violet-400 transition-colors">
+        {label}
+      </label>
+      <div className="relative">
+        <div className="absolute inset-y-0 left-4 flex items-center text-zinc-600 group-focus-within/input:text-violet-400 transition-colors">
+          {icon}
+        </div>
+        <input
+          type={type}
+          required
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all font-medium"
+        />
       </div>
     </div>
   );
