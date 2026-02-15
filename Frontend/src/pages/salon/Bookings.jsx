@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchSalonBookings,
+  fetchMyBookings,
   updateBookingStatus
 } from "../../redux/booking/bookingThunks";
 
@@ -10,7 +10,7 @@ export default function SalonBookings() {
   const { list, loading } = useSelector((s) => s.booking);
 
   useEffect(() => {
-    dispatch(fetchSalonBookings());
+    dispatch(fetchMyBookings());
   }, [dispatch]);
 
   return (

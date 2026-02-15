@@ -5,11 +5,16 @@ import {
   createService,
   getMyServices,
   updateService,
-  deleteService
+  deleteService,
+  getServicesBySalon   // add this
 } from "./service.controller.js";
 
 const router = express.Router();
 
+/* PUBLIC: get services of a salon */
+router.get("/salon/:salonId", getServicesBySalon);
+
+/* OWNER ONLY */
 router.use(auth, approvedSalonOnly);
 
 router.post("/", createService);
