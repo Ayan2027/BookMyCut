@@ -19,14 +19,18 @@ export const fetchSlotsBySalon = createAsyncThunk(
 
 export const createBooking = createAsyncThunk(
   "booking/create",
-  async ({ serviceId, slotId }) => {
-    const res = await api.post("/bookings", {
-      serviceId,
-      slotId,
-    });
-    return res.data;
-  },
+  async (payload, { rejectWithValue }) => {
+    try {
+      console.log("THUNK RUNNING", payload);
+      const res = await api.post("/bookings", payload);
+      return res.data;
+    } catch (err) {
+      console.log("BOOKING API ERROR:", err.response?.data);
+      return rejectWithValue(err.response?.data);
+    }
+  }
 );
+
 
 export const fetchMyBookings = createAsyncThunk("booking/fetchMy", async () => {
   const res = await api.get("/bookings/me");
