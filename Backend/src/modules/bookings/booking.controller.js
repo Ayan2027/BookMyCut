@@ -4,10 +4,12 @@ import Service from "../services/service.model.js";
 
 /* User creates booking */
 export const createBooking = async (req, res) => {
+  console.log("BODY:", req.body);
   const { salonId, slotId, services, bookingType, address } = req.body;
 
   // Ensure slot is available
   const slot = await Slot.findOne({ _id: slotId, salon: salonId, status: "AVAILABLE" });
+  console.log("FOUND SLOT:", slot);
   if (!slot) return res.status(400).json({ message: "Slot not available" });
 
   // Load services
@@ -29,7 +31,7 @@ export const createBooking = async (req, res) => {
     address,
     status: "PENDING"
   });
-
+  console.log("booking ",booking)
   res.json(booking);
 };
 

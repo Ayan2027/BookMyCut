@@ -6,12 +6,21 @@ import {
   fetchSlotsBySalon,
   createBooking
 } from "../../redux/booking/bookingThunks";
+
+import { loadRazorpay } from "../../utils/loadRazorpay";
+import {
+  createOrderAPI,
+  verifyPaymentAPI
+} from "../../services/payment.service";
+
+
 import {
   setService,
   setSlot,
   setDate,
   resetBooking
 } from "../../redux/booking/bookingSlice";
+
 
 export default function SalonDetails() {
   const { salonId } = useParams();
@@ -42,17 +51,56 @@ export default function SalonDetails() {
       );
     }
   }, [selectedService, selectedDate, dispatch, salonId]);
-
   const confirmBooking = async () => {
-    await dispatch(
-      createBooking({
-        serviceId: selectedService._id,
-        slotId: selectedSlot._id
-      })
-    );
+    console.log("BUTTON CLICKED");
 
-    dispatch(resetBooking());
-    navigate("/app/bookings/success");
+    try {
+      // 1. Create booking
+      const booking = await dispatch(
+        createBooking({
+          salonId: salonId,
+          slotId: selectedSlot._id,
+          services: [selectedService._id],
+          bookingType: "IN_SALON"
+        })
+      ).unwrap();
+
+      console.log("BOOKING CREATED:", booking);
+
+      // 2. Load Razorpay SDK
+      const razorpayLoaded = await loadRazorpay();
+      if (!razorpayLoaded) {
+        alert("Payment SDK failed to load");
+        return;
+      }
+
+      // 3. Create payment order
+      const { data } = await createOrderAPI(booking._id);
+      const { order } = data;
+
+      // 4. Open Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY,
+        amount: order.amount,
+        currency: "INR",
+        name: "Salon Booking",
+        order_id: order.id,
+
+        handler: async function (response) {
+          // 5. Verify payment
+          await verifyPaymentAPI(response);
+
+          dispatch(resetBooking());
+          navigate("/app/bookings/success");
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      console.log("BOOKING ERROR:", err);
+    }
   };
 
   return (
@@ -77,11 +125,10 @@ export default function SalonDetails() {
               {services.map((s) => (
                 <div
                   key={s._id}
-                  className={`border rounded-xl p-4 cursor-pointer ${
-                    selectedService?._id === s._id
-                      ? "border-black bg-gray-100"
-                      : ""
-                  }`}
+                  className={`border rounded-xl p-4 cursor-pointer ${selectedService?._id === s._id
+                    ? "border-black bg-gray-100"
+                    : ""
+                    }`}
                   onClick={() => {
                     dispatch(setService(s));
                     dispatch(setSlot(null));
@@ -123,11 +170,10 @@ export default function SalonDetails() {
                 {slots.map((slot) => (
                   <button
                     key={slot._id}
-                    className={`border p-2 rounded ${
-                      selectedSlot?._id === slot._id
-                        ? "border-black bg-gray-100"
-                        : ""
-                    }`}
+                    className={`border p-2 rounded ${selectedSlot?._id === slot._id
+                      ? "border-black bg-gray-100"
+                      : ""
+                      }`}
                     onClick={() => dispatch(setSlot(slot))}
                   >
                     {slot.startTime}
@@ -146,13 +192,12 @@ export default function SalonDetails() {
                 !selectedSlot
               }
               onClick={confirmBooking}
-              className={`px-6 py-3 rounded text-white ${
-                selectedService &&
+              className={`px-6 py-3 rounded text-white ${selectedService &&
                 selectedDate &&
                 selectedSlot
-                  ? "bg-black"
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
+                ? "bg-black"
+                : "bg-gray-400 cursor-not-allowed"
+                }`}
             >
               Book and Pay
             </button>
