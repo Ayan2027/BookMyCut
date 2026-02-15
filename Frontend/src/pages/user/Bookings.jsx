@@ -5,7 +5,7 @@ import {
   updateBookingStatus
 } from "../../redux/booking/bookingThunks";
 
-export default function SalonBookings() {
+export default function UserBookings() {
   const dispatch = useDispatch();
   const { bookings, loading } = useSelector((s) => s.booking);
 
@@ -15,13 +15,15 @@ export default function SalonBookings() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="bg-white shadow rounded-2xl p-6">
-        <h2 className="text-2xl font-semibold">Bookings</h2>
+        <h2 className="text-2xl font-semibold">My Bookings</h2>
         <p className="text-gray-500">
-          Manage customer appointments
+          Track your appointments and status
         </p>
       </div>
 
+      {/* Content */}
       <div className="bg-white shadow rounded-2xl p-6">
         {loading && <p>Loading bookings...</p>}
 
@@ -31,11 +33,16 @@ export default function SalonBookings() {
 
         <div className="space-y-4">
           {bookings.map((b) => (
-            <BookingRow
+            <BookingCard
               key={b._id}
               booking={b}
-              onStatus={(status) =>
-                dispatch(updateBookingStatus({ id: b._id, status }))
+              onCancel={() =>
+                dispatch(
+                  updateBookingStatus({
+                    id: b._id,
+                    status: "CANCELLED"
+                  })
+                )
               }
             />
           ))}
@@ -45,38 +52,63 @@ export default function SalonBookings() {
   );
 }
 
-function BookingRow({ booking, onStatus }) {
+const statusText = {
+  PENDING: "Waiting for salon confirmation",
+  ACCEPTED: "Appointment confirmed",
+  COMPLETED: "Service completed",
+  CANCELLED: "Booking cancelled"
+};
+
+const statusStyles = {
+  PENDING: "bg-yellow-100 text-yellow-700",
+  ACCEPTED: "bg-green-100 text-green-700",
+  COMPLETED: "bg-blue-100 text-blue-700",
+  CANCELLED: "bg-red-100 text-red-700"
+};
+
+function BookingCard({ booking, onCancel }) {
+  const canCancel = booking.status === "PENDING";
+
   return (
     <div className="border rounded-xl p-4 flex justify-between items-center">
-      <div>
-        <p className="font-semibold">{booking.serviceName}</p>
-        <p className="text-gray-500">{booking.date}</p>
-        <p className="text-gray-500">{booking.slotTime}</p>
-        <p className="text-sm">Status: {booking.status}</p>
+      <div className="space-y-1">
+        <div className="flex gap-2 items-center">
+          <p className="font-semibold">
+            {booking.services?.map((s) => s.name).join(", ")}
+          </p>
+
+          <span
+            className={`text-xs px-2 py-1 rounded ${statusStyles[booking.status]}`}
+          >
+            {booking.status}
+          </span>
+        </div>
+
+        <p className="text-gray-500 text-sm">
+          {booking.slot?.date}
+        </p>
+
+        <p className="text-gray-500 text-sm">
+          {booking.slot?.startTime}
+        </p>
+
+        <p className="text-sm font-medium">
+          ₹{booking.totalAmount}
+        </p>
+
+        <p className="text-xs text-gray-500">
+          {statusText[booking.status]}
+        </p>
       </div>
 
-      <div className="flex gap-2">
+      {canCancel && (
         <button
-          onClick={() => onStatus("ACCEPTED")}
-          className="bg-green-500 text-white px-3 py-1 rounded"
-        >
-          Accept
-        </button>
-
-        <button
-          onClick={() => onStatus("COMPLETED")}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-        >
-          Complete
-        </button>
-
-        <button
-          onClick={() => onStatus("CANCELLED")}
+          onClick={onCancel}
           className="bg-red-500 text-white px-3 py-1 rounded"
         >
-          Cancel
+          Cancel booking
         </button>
-      </div>
+      )}
     </div>
   );
 }
