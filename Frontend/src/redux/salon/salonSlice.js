@@ -3,7 +3,8 @@ import {
   fetchMySalon,
   applySalon,
   updateSalon,
-  fetchSalons
+  fetchSalons,
+  fetchSalonById // Ensure this is imported from your thunks
 } from "./salonThunks";
 
 const initialState = {
@@ -23,6 +24,7 @@ const salonSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      /* 1. FETCH MY SALON (Owner Side) */
       .addCase(fetchMySalon.pending, (state) => {
         state.loading = true;
       })
@@ -36,6 +38,24 @@ const salonSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+
+      /* 2. FETCH SALON BY ID (Public/Customer Side) */
+      .addCase(fetchSalonById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSalonById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.salon = action.payload; // Public route returns the salon object directly
+        state.exists = !!action.payload;
+        state.status = action.payload?.status || null;
+      })
+      .addCase(fetchSalonById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      /* 3. APPLY FOR SALON */
       .addCase(applySalon.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -51,9 +71,12 @@ const salonSlice = createSlice({
         state.error = action.error?.message || "Application failed";
       })
 
+      /* 4. UPDATE SALON */
       .addCase(updateSalon.fulfilled, (state, action) => {
         state.salon = action.payload;
       })
+
+      /* 5. FETCH ALL SALONS */
       .addCase(fetchSalons.pending, (state) => {
         state.loading = true;
       })
@@ -64,7 +87,6 @@ const salonSlice = createSlice({
       .addCase(fetchSalons.rejected, (state) => {
         state.loading = false;
       });
-
   }
 });
 

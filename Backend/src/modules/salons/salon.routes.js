@@ -5,13 +5,15 @@ import {
   getMySalon,
   updateMySalon,
   getApprovedSalons,
-  getSlotsBySalon   // add this
+  getSlotsBySalon ,
+  getSalonById
 } from "./salon.controller.js";
 
 const router = express.Router();
 
 /* PUBLIC */
 router.get("/", getApprovedSalons);
+router.get("/:salonId", getSalonById);
 
 // NEW: get slots of a salon (for customers)
 router.get("/:salonId/slots", getSlotsBySalon);
