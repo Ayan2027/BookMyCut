@@ -74,8 +74,8 @@ export default function AppRoutes() {
             <Route path="/app/salons" element={<Salons />} />
             <Route path="/app/salons/:salonId" element={<SalonDetails />} />
 
-            {/* NEW BOOK FLOW */}
-            {/* <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
+            {/* NEW BOOK FLOW
+            <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
             <Route path="/app/bookings/success" element={<BookingSuccess />} /> */}
           </Route>
         </Route>

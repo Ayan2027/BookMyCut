@@ -8,6 +8,8 @@ import slotRoutes from "./modules/slots/slot.routes.js";
 import bookingRoutes from "./modules/bookings/booking.routes.js";
 import paymentRoutes from "./modules/payments/payment.routes.js";
 import walletRoutes from "./modules/wallets/wallet.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
+
 
 const app = express();
 
@@ -26,5 +28,6 @@ app.use("/slots", slotRoutes);
 app.use("/bookings", bookingRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/wallet", walletRoutes);
+app.use("/upload", uploadRoutes);
 
 export default app;

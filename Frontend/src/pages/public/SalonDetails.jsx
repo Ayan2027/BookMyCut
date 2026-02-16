@@ -20,6 +20,8 @@ import {
   resetBooking
 } from "../../redux/booking/bookingSlice";
 
+import api from "../../services/api";
+
 export default function SalonDetails() {
   const { salonId } = useParams();
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ export default function SalonDetails() {
 
   const [processing, setProcessing] = useState(false);
   const [statusText, setStatusText] = useState("");
+  const [salon, setSalon] = useState(null);
 
   const {
     services,
@@ -39,6 +42,11 @@ export default function SalonDetails() {
   useEffect(() => {
     dispatch(resetBooking());
     dispatch(fetchServicesBySalon(salonId));
+
+    // fetch salon details
+    api.get(`/salons/${salonId}`).then((res) => {
+      setSalon(res.data);
+    });
   }, [dispatch, salonId]);
 
   useEffect(() => {
@@ -76,10 +84,10 @@ export default function SalonDetails() {
       setStatusText("Opening payment...");
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY,
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: "INR",
-        name: "Salon Booking",
+        name: salon?.name || "Salon Booking",
         order_id: order.id,
 
         handler: async function (response) {
@@ -87,7 +95,7 @@ export default function SalonDetails() {
           await verifyPaymentAPI(response);
 
           dispatch(resetBooking());
-          navigate("/app/bookings/success");
+          navigate("/app/bookings");
         },
 
         modal: {
@@ -112,12 +120,41 @@ export default function SalonDetails() {
     <div className="bg-gray-50 min-h-screen">
       <div className="max-w-5xl mx-auto p-6 space-y-6">
 
-        <div className="bg-white border rounded-2xl p-6">
-          <h1 className="text-2xl font-semibold">
-            Book Service
-          </h1>
-        </div>
+        {/* Salon Header */}
+        {salon && (
+          <div className="bg-white border rounded-2xl p-6 flex gap-6">
+            {salon.image && (
+              <img
+                src={salon.image}
+                alt={salon.name}
+                className="w-40 h-32 object-cover rounded-xl"
+              />
+            )}
 
+            <div className="space-y-2">
+              <h1 className="text-2xl font-semibold">
+                {salon.name}
+              </h1>
+
+              <p className="text-gray-500">
+                {salon.address}, {salon.city}
+              </p>
+
+              {salon.mapLink && (
+                <a
+                  href={salon.mapLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  Open in Google Maps
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Booking Card */}
         <div className="bg-white border rounded-2xl p-6 space-y-6">
 
           {/* Services */}

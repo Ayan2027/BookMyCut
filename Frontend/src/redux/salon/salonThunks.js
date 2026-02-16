@@ -12,12 +12,23 @@ export const fetchMySalon = createAsyncThunk(
 
 export const applySalon = createAsyncThunk(
   "salon/apply",
-  async (data) => {
-    const res = await salonService.apply(data);
-    console.log("res of applysalon ",res)
-    return res.data.salon || res.data;
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await salonService.apply(data);
+
+      console.log("Salon apply response:", res);
+
+      return res.data;
+    } catch (err) {
+      console.log("Salon apply error:", err);
+
+      return rejectWithValue(
+        err.response?.data?.message || "Salon apply failed"
+      );
+    }
   }
 );
+
 
 export const updateSalon = createAsyncThunk(
   "salon/update",
