@@ -4,25 +4,90 @@ import Slot from "../slots/slot.model.js";
 /* Salon owner applies */
 export const applySalon = async (req, res) => {
   try {
-    console.log("req ", req.user._id);
     const exists = await Salon.findOne({ owner: req.user._id });
+
     if (exists) {
-      console.log("existys");
-      return res.status(400).json({ message: "Already applied" });
+      return res.status(400).json({
+        message: "Salon already exists for this user",
+      });
     }
-    console.log("req ", req.user._id);
+
+    const { name, description, address, city, image, mapLink } = req.body;
+
+    if (!name || !address || !city) {
+      return res.status(400).json({
+        message: "Name, address and city are required",
+      });
+    }
+
+    let location = null;
+
+    // Extract coordinates from map link
+    if (mapLink) {
+      try {
+        const url = new URL(mapLink);
+        const host = url.hostname;   // ← FIXED HERE
+
+        if (
+          !host.includes("google.com") &&
+          !host.includes("goo.gl") &&
+          !host.includes("maps.app.goo.gl")
+        ) {
+          return res.status(400).json({
+            message: "Invalid Google Maps link",
+          });
+        }
+
+        // Case 1: ?q=lat,lng
+        const q = url.searchParams.get("q");
+
+        if (q && q.includes(",")) {
+          const [lat, lng] = q.split(",").map(Number);
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            location = { lat, lng };
+          }
+        }
+
+        // Case 2: links like /@25.4358,81.8463
+        if (!location && url.pathname.includes("@")) {
+          const match = url.pathname.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+          if (match) {
+            location = {
+              lat: parseFloat(match[1]),
+              lng: parseFloat(match[2]),
+            };
+          }
+        }
+      } catch {
+        return res.status(400).json({
+          message: "Invalid map link format",
+        });
+      }
+    }
 
     const salon = await Salon.create({
       owner: req.user._id,
-      ...req.body,
+      name,
+      description,
+      address,
+      city,
+      image,
+      mapLink,
+      location,
     });
-    console.log("salon ", salon);
-    res.json({ message: "Salon application submitted", salon });
+
+    res.json({
+      message: "Salon application submitted",
+      salon,
+    });
   } catch (err) {
     console.error("Apply salon error:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 export const getMySalon = async (req, res) => {
   console.log(req.user._id);
@@ -50,12 +115,12 @@ export const updateMySalon = async (req, res) => {
   res.json(salon);
 };
 
-
 export const getApprovedSalons = async (req, res) => {
   try {
-    const salons = await Salon.find({ status: "APPROVED" })
-      .select("name city address rating location");
-      console.log("salons ",salons)
+    const salons = await Salon.find({ status: "APPROVED" }).select(
+      "name city address rating image mapLink",
+    );
+
     res.json(salons);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -70,14 +135,14 @@ export const getSlotsBySalon = async (req, res) => {
 
     if (!date) {
       return res.status(400).json({
-        message: "Date is required"
+        message: "Date is required",
       });
     }
 
     const slots = await Slot.find({
       salon: salonId,
       date,
-      status: "AVAILABLE"
+      status: "AVAILABLE",
     }).sort({ startTime: 1 });
 
     res.json(slots);

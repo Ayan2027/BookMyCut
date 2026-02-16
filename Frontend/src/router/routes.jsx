@@ -28,8 +28,8 @@ import NotFound from "../pages/system/NotFound";
 /* User Pages */
 import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
-import BookFlow from "../pages/user/BookFlow";
-import BookingSuccess from "../pages/user/BookingSuccess";
+// import BookFlow from "../pages/user/BookFlow";
+// import BookingSuccess from "../pages/user/BookingSuccess";
 
 /* Salon Pages */
 import SalonServices from "../pages/salon/Services";
@@ -74,9 +74,9 @@ export default function AppRoutes() {
             <Route path="/app/salons" element={<Salons />} />
             <Route path="/app/salons/:salonId" element={<SalonDetails />} />
 
-            {/* NEW BOOK FLOW */}
+            {/* NEW BOOK FLOW
             <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
-            <Route path="/app/bookings/success" element={<BookingSuccess />} />
+            <Route path="/app/bookings/success" element={<BookingSuccess />} /> */}
           </Route>
         </Route>
       </Route>

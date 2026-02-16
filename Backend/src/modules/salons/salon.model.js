@@ -3,11 +3,19 @@ import mongoose from "mongoose";
 const salonSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: "Account" },
 
-  name: String,
+  name: { type: String, required: true },
   description: String,
-  address: String,
-  city: String,
-  location: { lat: Number, lng: Number },
+  address: { type: String, required: true },
+  city: { type: String, required: true },
+
+  image: String,
+
+  mapLink: String,   // NEW FIELD
+
+  location: {
+    lat: Number,
+    lng: Number
+  },
 
   documents: [String],
 
