@@ -38,7 +38,8 @@ export const createBooking = async (req, res) => {
 /* User gets own bookings */
 export const getMyBookings = async (req, res) => {
   const bookings = await Booking.find({ user: req.user._id })
-    .populate("salon slot services");
+    .populate("salon slot services")
+    .sort({ createdAt: -1 }); // newest first
 
   res.json(bookings);
 };

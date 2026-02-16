@@ -5,5 +5,5 @@ export const salonService = {
   apply: (data) => api.post("/salons/apply", data),
   update: (data) => api.put("/salons/me", data),
   getAll: () => api.get("/salons"),
-
+  getById: (id) => api.get(`/salons/${id}`),
 };

@@ -118,7 +118,7 @@ export const updateMySalon = async (req, res) => {
 export const getApprovedSalons = async (req, res) => {
   try {
     const salons = await Salon.find({ status: "APPROVED" }).select(
-      "name city address rating image mapLink",
+      "name city description address rating image mapLink"
     );
 
     res.json(salons);
@@ -126,6 +126,7 @@ export const getApprovedSalons = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 /* Get slots of a salon (for customers) */
 export const getSlotsBySalon = async (req, res) => {
@@ -148,5 +149,20 @@ export const getSlotsBySalon = async (req, res) => {
     res.json(slots);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const getSalonById = async (req, res) => {
+  try {
+    const { salonId } = req.params;
+    const salon = await Salon.findById(salonId);
+
+    if (!salon) {
+      return res.status(404).json({ message: "Salon not found" });
+    }
+
+    res.json(salon);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching salon details" });
   }
 };

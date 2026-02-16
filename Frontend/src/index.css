@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px; /* Very thin for a minimal look */
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505; /* Matches your background */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a; /* zinc-800 */
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed; /* violet-600 on hover */
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #27272a #050505;
+}

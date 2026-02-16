@@ -45,3 +45,11 @@ export const fetchSalons = createAsyncThunk(
     return res.data;
   }
 );
+
+export const fetchSalonById = createAsyncThunk(
+  "salon/fetchById",
+  async (salonId) => {
+    const res = await salonService.getById(salonId);
+    return res.data;
+  }
+);
