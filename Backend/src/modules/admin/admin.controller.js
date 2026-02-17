@@ -62,13 +62,38 @@ export const suspendSalon = async (req, res) => {
   }
 };
 
-/* View bookings */
-export const allBookings = async (req, res) => {
+/* Admin gets all bookings with Transaction Trace */
+/* src/controllers/admin.controller.js */
+
+export const getAllBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find().populate("salon user");
-    res.json(bookings);
+    // 1. Fetch bookings and EXCLUDE passwordHash (Security Fix)
+    const bookings = await Booking.find()
+      .sort({ createdAt: -1 })
+      .populate("user", "name email phone role status") // DO NOT include passwordHash here
+      .populate("salon", "name")
+      .populate("slot", "date startTime")
+      .populate("services", "name price");
+
+    // 2. Fetch payment details for these specific bookings
+    const bookingIds = bookings.map(b => b._id);
+    const payments = await Payment.find({ booking: { $in: bookingIds } });
+
+    // 3. Merge the data manually (since Booking doesn't have a paymentId field)
+    const results = bookings.map(b => {
+      // Find the payment object that belongs to this booking ID
+      const payment = payments.find(p => p.booking.toString() === b._id.toString());
+      
+      return {
+        ...b._doc,
+        transaction: payment || null // This adds the 'transaction' object you need
+      };
+    });
+
+    res.json(results);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("ADMIN_FETCH_ERROR:", err);
+    res.status(500).json({ message: "System failure during registry compilation." });
   }
 };
 
@@ -95,6 +120,25 @@ export const payoutSalon = async (req, res) => {
     await wallet.save();
 
     res.json({ message: "Payout successful" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+/* Admin updates booking status */
+export const adminUpdateBookingStatus = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+
+    if (!booking)
+      return res.status(404).json({ message: "Booking not found" });
+
+    res.json(booking);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

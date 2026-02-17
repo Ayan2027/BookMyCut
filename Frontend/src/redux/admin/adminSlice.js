@@ -5,6 +5,8 @@ import {
   approveSalon,
   rejectSalon,
   suspendSalon,
+  fetchAllBookings,
+  adminUpdateBookingStatus,
 } from "./adminThunks";
 
 const initialState = {
@@ -15,6 +17,9 @@ const initialState = {
   paymentsCount: 0,
   loading: false,
   error: null,
+  bookings: [],
+  bookingLoading: false,
+  bookingError: null,
 };
 
 const adminSlice = createSlice({
@@ -23,7 +28,7 @@ const adminSlice = createSlice({
   reducers: {
     clearAdminError(state) {
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -46,18 +51,40 @@ const adminSlice = createSlice({
       /* Approve / reject / suspend: remove from pendingList if successful */
       .addCase(approveSalon.fulfilled, (state, action) => {
         const id = action.payload?.salon?._id || action.payload?._id;
-        state.pendingList = state.pendingList.filter(s => s._id !== id);
+        state.pendingList = state.pendingList.filter((s) => s._id !== id);
         state.pendingCount = Math.max(0, state.pendingCount - 1);
       })
       .addCase(rejectSalon.fulfilled, (state, action) => {
         const id = action.payload?.salon?._id || action.payload?._id;
-        state.pendingList = state.pendingList.filter(s => s._id !== id);
+        state.pendingList = state.pendingList.filter((s) => s._id !== id);
         state.pendingCount = Math.max(0, state.pendingCount - 1);
       })
       .addCase(suspendSalon.fulfilled, (state, action) => {
         const id = action.payload?.salon?._id || action.payload?._id;
-        state.pendingList = state.pendingList.filter(s => s._id !== id);
+        state.pendingList = state.pendingList.filter((s) => s._id !== id);
         state.pendingCount = Math.max(0, state.pendingCount - 1);
+      })
+      // Fetch All Bookings
+      .addCase(fetchAllBookings.pending, (state) => {
+        state.bookingLoading = true;
+      })
+      .addCase(fetchAllBookings.fulfilled, (state, action) => {
+        state.bookingLoading = false;
+        state.bookings = action.payload;
+      })
+      .addCase(fetchAllBookings.rejected, (state, action) => {
+        state.bookingLoading = false;
+        state.bookingError = action.payload;
+      })
+
+      // Update Status (Optimistic Update or Refresh)
+      .addCase(adminUpdateBookingStatus.fulfilled, (state, action) => {
+        const index = state.bookings.findIndex(
+          (b) => b._id === action.payload._id,
+        );
+        if (index !== -1) {
+          state.bookings[index] = action.payload;
+        }
       });
   },
 });

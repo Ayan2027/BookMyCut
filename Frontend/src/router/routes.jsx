@@ -28,6 +28,8 @@ import NotFound from "../pages/system/NotFound";
 /* User Pages */
 import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
+import Account from "../pages/user/Account";
+import UserProfile from "../pages/user/Profile";
 // import BookFlow from "../pages/user/BookFlow";
 // import BookingSuccess from "../pages/user/BookingSuccess";
 
@@ -44,6 +46,7 @@ import Profile from "../pages/salon/Profile";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminSalons from "../pages/admin/Salons";
 import AdminPayments from "../pages/admin/Payments";
+import AdminBookings from "../pages/admin/Bookings";
 
 export default function AppRoutes() {
   return (
@@ -73,6 +76,9 @@ export default function AppRoutes() {
 
             <Route path="/app/salons" element={<Salons />} />
             <Route path="/app/salons/:salonId" element={<SalonDetails />} />
+            <Route path="/app/account" element={<Account />} />
+
+            <Route path="/app/profile" element={<UserProfile />} />
 
             {/* NEW BOOK FLOW
             <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
@@ -106,6 +112,8 @@ export default function AppRoutes() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/salons" element={<AdminSalons />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
+            
           </Route>
         </Route>
       </Route>

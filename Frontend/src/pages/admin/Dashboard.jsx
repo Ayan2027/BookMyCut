@@ -1,4 +1,3 @@
-// src/pages/admin/Dashboard.jsx
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -19,6 +18,9 @@ import {
   AlertCircle,
   TrendingUp,
   Clock,
+  Activity,
+  ShieldCheck,
+  ChevronRight
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -34,237 +36,143 @@ export default function AdminDashboard() {
   } = useSelector((s) => s.admin);
 
   useEffect(() => {
-    console.log("Admin dashboard mounted");
     dispatch(fetchAdminOverview());
   }, [dispatch]);
 
-  const handleApprove = (id) => {
-    dispatch(approveSalon(id)).then(() => dispatch(fetchAdminOverview()));
-  };
-
-  const handleReject = (id) => {
-    dispatch(rejectSalon({ salonId: id, reason: "Rejected by admin" })).then(
-      () => dispatch(fetchAdminOverview()),
-    );
-  };
-
-  const handleSuspend = (id) => {
-    dispatch(suspendSalon(id)).then(() => dispatch(fetchAdminOverview()));
-  };
-
   const stats = [
-    {
-      label: "Pending Approvals",
-      value: pendingCount,
-      icon: Clock,
-      color: "from-amber-500 to-orange-500",
-      bgColor: "bg-amber-50",
-      textColor: "text-amber-600",
-    },
-    {
-      label: "Total Salons",
-      value: salonsCount,
-      icon: Store,
-      color: "from-blue-500 to-cyan-500",
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-600",
-    },
-    {
-      label: "Total Bookings",
-      value: bookingsCount,
-      icon: Calendar,
-      color: "from-purple-500 to-pink-500",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
-    },
-    {
-      label: "Payments",
-      value: paymentsCount,
-      icon: CreditCard,
-      color: "from-emerald-500 to-teal-500",
-      bgColor: "bg-emerald-50",
-      textColor: "text-emerald-600",
-    },
+    { label: "Pending_Approval", value: pendingCount, icon: Clock, color: "text-amber-500", glow: "shadow-amber-500/20" },
+    { label: "Salons", value: salonsCount, icon: Store, color: "text-blue-500", glow: "shadow-blue-500/20" },
+    { label: "Total_Bookings", value: bookingsCount, icon: Calendar, color: "text-violet-500", glow: "shadow-violet-500/20" },
+    { label: "Payment", value: paymentsCount, icon: CreditCard, color: "text-emerald-500", glow: "shadow-emerald-500/20" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-              <TrendingUp className="w-6 h-6 text-white" />
+    <div className="space-y-10 selection:bg-violet-500/30 pb-12">
+      
+      {/* 1. KERNEL HEADER */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-violet-500 font-mono text-[10px] tracking-[0.4em] uppercase">
+             <Activity size={14} /> System_Pulse: Active
+          </div>
+          <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none">
+            Dashboard_ <br/>
+            <span className="text-zinc-500 outline-text">OVERVIEW</span>
+          </h1>
+        </div>
+        
+        <div className="flex items-center gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-2xl backdrop-blur-xl">
+           <div className="text-right">
+              <p className="text-[9px] font-mono text-zinc-600 uppercase">Last_Sync</p>
+              <p className="text-xs font-bold text-zinc-300 font-mono">{new Date().toLocaleTimeString()}</p>
+           </div>
+           <div className="h-8 w-px bg-white/10" />
+           <ShieldCheck className="text-emerald-500" size={24} />
+        </div>
+      </header>
+
+      {/* 2. STATS GRID: DATA_POINTS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, idx) => (
+          <div key={idx} className="group relative bg-[#080808] border border-white/5 rounded-3xl p-6 transition-all duration-500 hover:border-white/20">
+            <div className={`absolute top-0 left-1/2 -translate-x-1/2 h-1 w-20 rounded-full transition-all duration-500 opacity-20 group-hover:opacity-100 ${stat.color.replace('text', 'bg')} ${stat.glow}`} />
+            <div className="flex items-start justify-between mb-8">
+              <div className={`h-12 w-12 rounded-xl bg-white/5 flex items-center justify-center ${stat.color} transition-transform group-hover:scale-110`}>
+                <stat.icon size={24} />
+              </div>
+              <TrendingUp size={14} className="text-zinc-800" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-                Admin Dashboard
-              </h1>
-              <p className="text-slate-500 text-sm mt-1">
-                Manage salons, bookings, and monitor platform activity
-              </p>
+            <div className="space-y-1">
+              <div className="text-4xl font-black tracking-tighter italic font-mono uppercase leading-none">
+                {stat.value || 0}
+              </div>
+              <div className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">{stat.label}</div>
             </div>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, idx) => (
-            <StatCard key={idx} stat={stat} />
-          ))}
-        </div>
-
-        {/* Pending Applications */}
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-b border-slate-200">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800 mb-1">
-                  Pending Applications
-                </h2>
-                <p className="text-sm text-slate-600">
-                  Review and approve salon registrations
-                </p>
-              </div>
-              <button
-                onClick={() => navigate("/admin/salons")}
-                className="group flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-100 transition-all duration-200 text-sm font-medium text-slate-700 hover:text-indigo-600"
-              >
-                View all applications
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
+      {/* 3. PENDING APPLICATIONS: SECTOR_REVIEW */}
+      <section className="bg-[#080808] border border-white/5 rounded-[2.5rem] overflow-hidden">
+        <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="space-y-1 text-center md:text-left">
+            <h2 className="text-2xl font-black italic tracking-tighter uppercase">Application_Queue</h2>
+            <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest italic">Reviewing pending nodes for network integration</p>
           </div>
+          <button 
+            onClick={() => navigate("/admin/salons")}
+            className="group flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:bg-white hover:text-black transition-all duration-500"
+          >
+            Full_Registry <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
 
-          <div className="p-8">
-            {loading && (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-              </div>
-            )}
-
-            {!loading && pendingList.length === 0 && (
-              <div className="text-center py-16">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-10 h-10 text-slate-400" />
-                </div>
-                <p className="text-slate-500 font-medium">
-                  No pending applications at the moment
-                </p>
-                <p className="text-sm text-slate-400 mt-2">
-                  All salon registrations have been processed
-                </p>
-              </div>
-            )}
-
+        <div className="p-8">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-20">
+              <Loader2 className="animate-spin" size={40} />
+              <span className="text-[10px] font-mono uppercase tracking-widest">Compiling_Queue...</span>
+            </div>
+          ) : pendingList.length === 0 ? (
+            <div className="py-20 text-center space-y-4 opacity-40">
+              <CheckCircle className="mx-auto text-zinc-700" size={40} />
+              <p className="text-[10px] font-mono uppercase tracking-[0.4em]">Queue_Clear: Zero_Tasks_Detected</p>
+            </div>
+          ) : (
             <div className="space-y-4">
               {pendingList.map((s) => (
-                <ApplicationCard
-                  key={s._id}
-                  salon={s}
-                  onApprove={() => handleApprove(s._id)}
-                  onReject={() => handleReject(s._id)}
-                  onSuspend={() => handleSuspend(s._id)}
+                <ApplicationRow 
+                  key={s._id} 
+                  salon={s} 
+                  onApprove={() => dispatch(approveSalon(s._id)).then(() => dispatch(fetchAdminOverview()))}
+                  onReject={() => dispatch(rejectSalon({ salonId: s._id, reason: "Manual_Override" })).then(() => dispatch(fetchAdminOverview()))}
+                  onSuspend={() => dispatch(suspendSalon(s._id)).then(() => dispatch(fetchAdminOverview()))}
                 />
               ))}
             </div>
-          </div>
+          )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
 
-function StatCard({ stat }) {
-  const Icon = stat.icon;
+function ApplicationRow({ salon, onApprove, onReject, onSuspend }) {
   return (
-    <div className="group bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:shadow-slate-300/50 transition-all duration-300 hover:-translate-y-1">
-      <div className="flex items-start justify-between mb-4">
-        <div
-          className={`${stat.bgColor} w-14 h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className={`w-7 h-7 ${stat.textColor}`} />
+    <div className="group bg-white/[0.01] border border-white/5 rounded-2xl p-6 flex flex-col xl:flex-row xl:items-center justify-between gap-6 transition-all duration-500 hover:bg-white/[0.03] hover:border-white/10">
+      <div className="flex items-center gap-6">
+        <div className="h-16 w-16 rounded-2xl overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700 border border-white/5">
+           <img src={salon.image || "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=100"} alt="" className="h-full w-full object-cover" />
         </div>
-        <div
-          className={`text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r ${stat.color} text-white shadow-md`}
-        >
-          Live
+        <div className="space-y-1">
+           <h3 className="text-lg font-black tracking-tighter italic uppercase leading-none">{salon.name}</h3>
+           <div className="flex items-center gap-3 text-[9px] font-mono text-zinc-600 uppercase tracking-widest">
+              <span className="flex items-center gap-1"><MapPin size={10} /> {salon.city}</span>
+              <span className="h-1 w-1 bg-zinc-800 rounded-full" />
+              <span>Owner: {salon.ownerName || "External_Node"}</span>
+           </div>
         </div>
       </div>
-      <div className="space-y-1">
-        <div className="text-3xl font-bold text-slate-800 tracking-tight">
-          {stat.value?.toLocaleString() || 0}
-        </div>
-        <div className="text-sm font-medium text-slate-500">{stat.label}</div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <ActionButton onClick={onApprove} label="Approve" icon={CheckCircle} color="hover:bg-emerald-500" />
+        <ActionButton onClick={onReject} label="Reject" icon={XCircle} color="hover:bg-red-500" />
+        <ActionButton onClick={onSuspend} label="Suspend" icon={AlertCircle} color="hover:bg-amber-500" />
       </div>
     </div>
   );
 }
 
-function ApplicationCard({ salon, onApprove, onReject, onSuspend }) {
+function ActionButton({ onClick, label, icon: Icon, color }) {
   return (
-    <div className="group bg-gradient-to-br from-white to-slate-50 rounded-xl p-6 border border-slate-200 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-200">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex-1 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
-              <Store className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-bold text-slate-800 mb-1 truncate">
-                {salon.name}
-              </h3>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
-                <span className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                  {salon.address}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                  {salon.city}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 pl-15">
-            <Users className="w-4 h-4 text-slate-400" />
-            <span className="text-sm text-slate-600">
-              Owner:{" "}
-              <span className="font-medium text-slate-700">
-                {salon.ownerEmail ||
-                  salon.ownerName ||
-                  salon.ownerAccountId ||
-                  "—"}
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap lg:flex-nowrap gap-3 lg:flex-shrink-0">
-          <button
-            onClick={onApprove}
-            className="group/btn flex-1 lg:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-300 hover:-translate-y-0.5"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Approve
-          </button>
-          <button
-            onClick={onReject}
-            className="group/btn flex-1 lg:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-md shadow-red-200 hover:shadow-lg hover:shadow-red-300 hover:-translate-y-0.5"
-          >
-            <XCircle className="w-4 h-4" />
-            Reject
-          </button>
-          <button
-            onClick={onSuspend}
-            className="group/btn flex-1 lg:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all duration-200 shadow-md shadow-amber-200 hover:shadow-lg hover:shadow-amber-300 hover:-translate-y-0.5"
-          >
-            <AlertCircle className="w-4 h-4" />
-            Suspend
-          </button>
-        </div>
-      </div>
-    </div>
+    <button 
+      onClick={onClick}
+      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white/5 border border-white/5 rounded-xl text-[9px] font-bold uppercase tracking-widest text-zinc-500 transition-all duration-300 ${color} hover:text-black hover:scale-105 active:scale-95`}
+    >
+      <Icon size={14} /> {label}
+    </button>
   );
 }
+
+const Loader2 = ({ className, size }) => <Activity className={`${className} text-violet-500`} size={size} />;
+const MapPin = ({ size }) => <Store size={size} className="text-zinc-700" />;

@@ -62,4 +62,34 @@ export const login = createAsyncThunk(
 export const logout = createAsyncThunk("auth/logout", async () => {
   storage.clearToken();
   storage.clearRole();
+  return true;   // important
 });
+
+/* Update Profile */
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await authService.updateProfile(data);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Profile update failed"
+      );
+    }
+  }
+);
+
+export const fetchProfile = createAsyncThunk(
+  "auth/fetchProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await authService.getProfile();
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to load profile"
+      );
+    }
+  }
+);
