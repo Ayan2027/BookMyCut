@@ -2,6 +2,7 @@ import Salon from "./salon.model.js";
 import Slot from "../slots/slot.model.js";
 
 /* Salon owner applies */
+/* Salon owner applies */
 export const applySalon = async (req, res) => {
   try {
     const exists = await Salon.findOne({ owner: req.user._id });
@@ -12,11 +13,19 @@ export const applySalon = async (req, res) => {
       });
     }
 
-    const { name, description, address, city, image, mapLink } = req.body;
+    const { name, description, address, city, image, mapLink, phone } = req.body;
 
-    if (!name || !address || !city) {
+    // Required fields
+    if (!name || !address || !city || !phone) {
       return res.status(400).json({
-        message: "Name, address and city are required",
+        message: "Name, address, city and phone are required",
+      });
+    }
+
+    // Basic phone validation (must start with + and country code)
+    if (!phone.startsWith("+")) {
+      return res.status(400).json({
+        message: "Phone must include country code (e.g. +919876543210)",
       });
     }
 
@@ -26,7 +35,7 @@ export const applySalon = async (req, res) => {
     if (mapLink) {
       try {
         const url = new URL(mapLink);
-        const host = url.hostname;   // ← FIXED HERE
+        const host = url.hostname;
 
         if (
           !host.includes("google.com") &&
@@ -76,6 +85,7 @@ export const applySalon = async (req, res) => {
       image,
       mapLink,
       location,
+      phone, // NEW FIELD
     });
 
     res.json({
@@ -89,20 +99,30 @@ export const applySalon = async (req, res) => {
 };
 
 
+
 export const getMySalon = async (req, res) => {
-  console.log(req.user._id);
-  const salon = await Salon.findOne({ owner: req.user._id });
+  try {
+    console.log("User ID:", req.user._id);
 
-  if (!salon) {
-    return res.json({ exists: false });
+    const salon = await Salon.findOne({ owner: req.user._id });
+
+    console.log("Salon found:", salon);
+
+    if (!salon) {
+      return res.json({ exists: false });
+    }
+
+    res.json({
+      exists: true,
+      status: salon.status,
+      salon,
+    });
+  } catch (err) {
+    console.error("getMySalon error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  res.json({
-    exists: true,
-    status: salon.status,
-    salon,
-  });
 };
+
 
 /* Update salon */
 export const updateMySalon = async (req, res) => {

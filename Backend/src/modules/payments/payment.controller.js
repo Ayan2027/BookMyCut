@@ -4,6 +4,8 @@ import Payment from "./payment.model.js";
 import { razorpay } from "../../config/razorpay.js";
 import Wallet from "../wallets/wallet.model.js";
 import Slot from "../slots/slot.model.js";
+import Salon from "../salons/salon.model.js";
+import { sendWhatsAppMessage } from "../../services/whatsapp.service.js";
 
 /* Create Razorpay order */
 export const createOrder = async (req, res) => {
@@ -16,7 +18,7 @@ export const createOrder = async (req, res) => {
   const order = await razorpay.orders.create({
     amount: booking.totalAmount * 100,
     currency: "INR",
-    receipt: booking._id.toString()
+    receipt: booking._id.toString(),
   });
 
   const payment = await Payment.create({
@@ -27,7 +29,7 @@ export const createOrder = async (req, res) => {
     amount: booking.totalAmount,
     platformFee: booking.platformFee,
     salonEarning: booking.subtotal,
-    status: "CREATED"
+    status: "CREATED",
   });
 
   res.json({ order, paymentId: payment._id });
@@ -35,7 +37,8 @@ export const createOrder = async (req, res) => {
 
 /* Verify Razorpay payment */
 export const verifyPayment = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+    req.body;
 
   const body = razorpay_order_id + "|" + razorpay_payment_id;
   const expected = crypto
@@ -54,7 +57,10 @@ export const verifyPayment = async (req, res) => {
   await payment.save();
 
   // Confirm booking
-  const booking = await Booking.findById(payment.booking);
+  const booking = await Booking.findById(payment.booking).populate(
+    "services user slot salon",
+  );
+  console.log("booking ",booking)
   booking.status = "CONFIRMED";
   await booking.save();
 
@@ -65,8 +71,32 @@ export const verifyPayment = async (req, res) => {
   const wallet = await Wallet.findOneAndUpdate(
     { salon: payment.salon },
     { $inc: { balance: payment.salonEarning } },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
+
+  // Send WhatsApp to salon
+  try {
+    const salon = await Salon.findById(booking.salon);
+
+    if (salon?.phone) {
+      const serviceNames = booking.services.map((s) => s.name).join(", ");
+
+      const message = `
+New Booking Received
+
+Customer: ${booking.user?.name || booking.user?.email || "customer" }
+Service: ${serviceNames}
+Date: ${booking.slot?.date}
+Time: ${booking.slot?.startTime}
+
+Amount: ₹${booking.totalAmount}
+Booking ID: ${booking._id}
+`;
+      await sendWhatsAppMessage(salon.phone, message);
+    }
+  } catch (err) {
+    console.error("WhatsApp send failed:", err.message);
+  }
 
   res.json({ message: "Payment verified", wallet });
 };
