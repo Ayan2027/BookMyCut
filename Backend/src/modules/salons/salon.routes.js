@@ -8,19 +8,16 @@ import {
   getSlotsBySalon ,
   getSalonById
 } from "./salon.controller.js";
-
 const router = express.Router();
 
-/* PUBLIC */
-router.get("/", getApprovedSalons);
-router.get("/:salonId", getSalonById);
-
-// NEW: get slots of a salon (for customers)
-router.get("/:salonId/slots", getSlotsBySalon);
-
-/* OWNER */
+/* OWNER (must come before dynamic routes) */
 router.post("/apply", auth, applySalon);
 router.get("/me", auth, getMySalon);
 router.put("/me", auth, updateMySalon);
+
+/* PUBLIC */
+router.get("/", getApprovedSalons);
+router.get("/:salonId/slots", getSlotsBySalon);
+router.get("/:salonId", getSalonById);
 
 export default router;

@@ -1,5 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { login, verifyOtp, logout, requestOtp } from "./authThunks";
+import {
+  login,
+  verifyOtp,
+  logout,
+  requestOtp,
+  updateProfile,
+  fetchProfile,
+} from "./authThunks";
 import { storage } from "../../utils/storage";
 
 const initialState = {
@@ -7,7 +14,7 @@ const initialState = {
   user: null,
   role: storage.getRole() || null,
   loading: false,
-  error: null
+  error: null,
 };
 
 const authSlice = createSlice({
@@ -69,9 +76,32 @@ const authSlice = createSlice({
         user: null,
         role: null,
         loading: false,
-        error: null
-      }));
-  }
+        error: null,
+      }))
+      /* Update Profile */
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      /* Fetch Profile */
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state) => {
+        state.loading = false;
+      });
+  },
 });
 
 export default authSlice.reducer;

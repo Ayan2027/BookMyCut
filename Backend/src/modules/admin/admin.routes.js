@@ -5,9 +5,10 @@ import {
   approveSalon,
   rejectSalon,
   suspendSalon,
-  allBookings,
+  getAllBookings,
   allPayments,
-  payoutSalon
+  payoutSalon,
+  adminUpdateBookingStatus,
 } from "./admin.controller.js";
 
 const router = express.Router();
@@ -19,8 +20,11 @@ router.post("/salons/:salonId/approve", approveSalon);
 router.post("/salons/:salonId/reject", rejectSalon);
 router.post("/salons/:salonId/suspend", suspendSalon);
 
-router.get("/bookings", allBookings);
+router.get("/bookings", getAllBookings);
 router.get("/payments", allPayments);
 router.post("/payout/:salonId", payoutSalon);
+
+// Update booking status
+router.put("/bookings/:id", adminUpdateBookingStatus);
 
 export default router;

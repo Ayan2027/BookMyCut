@@ -60,3 +60,6 @@ export const updateBookingStatus = async (req, res) => {
 
   res.json(booking);
 };
+
+
+

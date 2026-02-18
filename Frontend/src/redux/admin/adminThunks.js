@@ -1,6 +1,7 @@
 // src/redux/admin/adminThunks.js
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { adminService } from "../../services/admin.service";
+import api from "../../services/api";
 
 /* Fetch small overview: pending salons, total salons, bookings count, payments count */
 export const fetchAdminOverview = createAsyncThunk(
@@ -61,6 +62,34 @@ export const suspendSalon = createAsyncThunk(
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || { message: err.message });
+    }
+  }
+);
+
+
+// Fetch all bookings (Admin only)
+export const fetchAllBookings = createAsyncThunk(
+  "admin/fetchAllBookings",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getBookings();
+      console.log("res ",res)
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to load registry");
+    }
+  }
+);
+
+// Update booking status
+export const adminUpdateBookingStatus = createAsyncThunk(
+  "admin/updateBookingStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const res = await api.put(`/admin/bookings/${id}`, { status });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Protocol override failed");
     }
   }
 );

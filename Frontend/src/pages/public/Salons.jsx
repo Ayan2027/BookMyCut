@@ -14,34 +14,33 @@ export default function Salons() {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 p-6 lg:p-12 space-y-12 selection:bg-violet-500/30">
+    <div className="min-h-screen bg-[#030303] text-zinc-100 p-6 lg:p-12 selection:bg-violet-500/30">
       
       {/* 1. DISCOVERY HEADER */}
-      <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-8 max-w-7xl mx-auto">
+      <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-8 max-w-7xl mx-auto mb-16">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="text-violet-500 animate-pulse" size={18} />
-            <span className="text-[10px] font-mono uppercase tracking-[0.5em] text-zinc-500">Curated Studios</span>
+            <Sparkles className="text-violet-500 animate-pulse" size={16} />
+            <span className="text-[9px] font-mono uppercase tracking-[0.5em] text-zinc-500">Curated Studios</span>
           </div>
-          <h1 className="text-7xl font-black italic tracking-tighter bg-gradient-to-b from-white via-white to-zinc-800 bg-clip-text text-transparent">
-            EXPLORE
+          <h1 className="text-6xl font-black italic tracking-tighter bg-gradient-to-b from-white via-white to-zinc-800 bg-clip-text text-transparent uppercase">
+            Explore
           </h1>
-          <p className="max-w-md text-zinc-500 text-sm leading-relaxed italic">
-            Connect with the elite of grooming. High-fidelity service providers calibrated for your specific aesthetic requirements.
+          <p className="max-w-md text-zinc-500 text-xs leading-relaxed italic opacity-70">
+            Calibration of personal aesthetic through high-fidelity grooming protocols.
           </p>
         </div>
 
-        {/* ADVANCED SEARCH/FILTER BAR */}
         <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 rounded-2xl p-2 backdrop-blur-xl">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
             <input 
-              className="bg-transparent border-none pl-12 pr-4 py-2 text-sm focus:outline-none w-48 lg:w-64" 
-              placeholder="Search by city or style..." 
+              className="bg-transparent border-none pl-10 pr-4 py-2 text-xs focus:outline-none w-48 lg:w-64 font-mono uppercase tracking-widest placeholder:text-zinc-800" 
+              placeholder="Locate_Node..." 
             />
           </div>
-          <button className="p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
-            <Filter size={18} className="text-violet-400" />
+          <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
+            <Filter size={16} className="text-violet-400" />
           </button>
         </div>
       </header>
@@ -53,7 +52,7 @@ export default function Salons() {
         ) : !salons?.length ? (
           <EmptyState />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
             {salons.map((s) => (
               <SalonCard 
                 key={s._id} 
@@ -68,61 +67,51 @@ export default function Salons() {
   );
 }
 
-// ADVANCED COMPONENT: Immersive Salon Card
 function SalonCard({ salon, onClick }) {
   return (
-    <div className="group relative bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all duration-700 hover:border-violet-500/40 hover:-translate-y-2 shadow-2xl">
-      
-      {/* IMAGE LAYER WITH OVERLAYS */}
-      <div className="relative h-72 overflow-hidden cursor-pointer" onClick={onClick}>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/20 z-10" />
+    <div 
+      onClick={onClick}
+      className="group relative bg-[#080808] border border-white/5 rounded-[1.5rem] overflow-hidden transition-all duration-500 hover:border-violet-500/30 hover:bg-white/[0.02] cursor-pointer"
+    >
+      {/* RECTANGULAR IMAGE LAYER (16:9 Aspect Ratio) */}
+      <div className="relative aspect-video overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-80 z-10" />
         <img
           src={salon.image || "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1000&auto=format&fit=crop"}
           alt={salon.name}
-          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 grayscale-[0.5] group-hover:grayscale-0"
+          className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-110"
         />
         
-        {/* TOP BADGE */}
-        <div className="absolute top-6 left-6 z-20 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full">
-          <Star size={12} className="text-yellow-500 fill-yellow-500" />
-          <span className="text-[10px] font-black tracking-widest uppercase">Elite Partner</span>
+        {/* SMALLER BADGE */}
+        <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg">
+          <Star size={10} className="text-violet-400 fill-violet-400" />
+          <span className="text-[8px] font-black tracking-[0.2em] uppercase text-white">Verified</span>
         </div>
-
-        {/* FLOATING ACTION BUTTON */}
-        <button className="absolute bottom-6 right-6 z-20 h-12 w-12 bg-white text-black rounded-full flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 shadow-[0_0_30px_rgba(255,255,255,0.3)]">
-          <ArrowUpRight size={24} />
-        </button>
       </div>
 
-      {/* CONTENT LAYER */}
-      <div className="p-8 space-y-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-violet-400 text-[10px] font-mono tracking-[0.3em] uppercase mb-1">
-            <MapPin size={12} /> {salon.city}
+      {/* TIGHTER CONTENT LAYER */}
+      <div className="p-6 space-y-3">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-zinc-600 text-[9px] font-mono tracking-widest uppercase">
+              <MapPin size={10} /> {salon.city}
+            </div>
+            <h3 className="text-xl font-black tracking-tighter uppercase italic leading-none group-hover:text-violet-400 transition-colors">
+              {salon.name}
+            </h3>
           </div>
-          <h3 className="text-2xl font-bold tracking-tighter uppercase italic group-hover:text-white transition-colors cursor-pointer" onClick={onClick}>
-            {salon.name}
-          </h3>
+          <div className="h-10 w-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
+             <ArrowUpRight size={18} />
+          </div>
         </div>
 
-        <p className="text-zinc-500 text-sm line-clamp-2 leading-relaxed font-medium italic opacity-80">
+        <p className="text-zinc-500 text-[11px] line-clamp-1 leading-relaxed italic opacity-60">
           {salon.description || "Premium styling and grooming experience tailored to your unique identity."}
         </p>
 
-        <div className="pt-4 flex flex-col gap-3">
-          <div className="h-px w-full bg-gradient-to-r from-white/10 to-transparent" />
-          
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-              Available_Now
-            </span>
-            <button 
-              onClick={onClick}
-              className="text-xs font-black uppercase tracking-tighter text-white hover:text-violet-400 transition-colors"
-            >
-              Book Entry
-            </button>
-          </div>
+        <div className="pt-2 flex items-center justify-between border-t border-white/5">
+           <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">Min_Rate</span>
+           <span className="text-sm font-bold text-zinc-300 tracking-tight italic">₹80+</span>
         </div>
       </div>
     </div>
@@ -131,9 +120,9 @@ function SalonCard({ salon, onClick }) {
 
 function LoadingGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-      {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="h-[450px] bg-white/[0.02] border border-white/5 rounded-[2.5rem] animate-pulse" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="aspect-video bg-white/[0.02] border border-white/5 rounded-[1.5rem] animate-pulse" />
       ))}
     </div>
   );
@@ -141,9 +130,8 @@ function LoadingGrid() {
 
 function EmptyState() {
   return (
-    <div className="py-40 text-center space-y-4 bg-white/[0.01] border border-dashed border-white/5 rounded-[3rem]">
-      <p className="text-zinc-700 italic tracking-[0.5em] uppercase text-sm">No Active Nodes Found</p>
-      <button className="text-xs text-violet-500 hover:text-white transition-colors uppercase font-mono tracking-widest">Refresh_Data_Stream</button>
+    <div className="py-20 text-center border border-dashed border-white/10 rounded-[2rem] opacity-40">
+      <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.4em]">Zero_Nodes_Detected</p>
     </div>
   );
 }

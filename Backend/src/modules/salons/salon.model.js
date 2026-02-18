@@ -7,6 +7,7 @@ const salonSchema = new mongoose.Schema({
   description: String,
   address: { type: String, required: true },
   city: { type: String, required: true },
+  phone: { type: String, required: true },
 
   image: String,
 

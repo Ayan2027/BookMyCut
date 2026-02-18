@@ -3,12 +3,21 @@ import { salonService } from "../../services/salon.service";
 
 export const fetchMySalon = createAsyncThunk(
   "salon/fetchMy",
-  async () => {
-    const res = await salonService.getMySalon();
-    console.log("res of fetchmysalon ",res)
-    return res.data;
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await salonService.getMySalon();
+      console.log("res of fetchMySalon:", res);
+      return res.data;
+    } catch (err) {
+      console.error("fetchMySalon error:", err.response?.data);
+
+      return rejectWithValue(
+        err.response?.data || { message: "Failed to fetch salon" }
+      );
+    }
   }
 );
+
 
 export const applySalon = createAsyncThunk(
   "salon/apply",
