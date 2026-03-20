@@ -19,8 +19,8 @@ export default function PublicLayout() {
             <div className="h-10 w-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(139,92,246,0.5)] group-hover:scale-110 transition-transform duration-500">
               <Scissors className="text-white" size={20} />
             </div>
-            <span className="text-2xl font-black tracking-tighter italic bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
-              TRIMBHAI
+            <span className="text-3xl font-black tracking-tighter italic bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
+              BookMyCut
             </span>
           </NavLink>
 

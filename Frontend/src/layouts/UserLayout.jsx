@@ -63,11 +63,11 @@ export default function UserLayout() {
         <div className="p-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-violet-600 rounded-xl flex items-center justify-center">
-              <Scissors size={20} className="text-white" />
+              <Scissors size={30} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-black italic uppercase">
-                TrimBhai
+              <h2 className="text-2xl font-black italic">
+                BookMyCut
               </h2>
               <span className="text-[9px] font-mono text-zinc-600 uppercase">
                 User_Terminal
