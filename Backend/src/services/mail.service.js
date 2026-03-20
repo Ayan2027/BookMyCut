@@ -1,27 +1,21 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { env } from "../config/env.js";
+
+const resend = new Resend(env.RESEND_API_KEY);
 
 export const sendMail = async (to, subject, html) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: env.MAIL_USER,
-        pass: env.MAIL_PASS
-      }
-    });
-
-    await transporter.sendMail({
-      from: `"BookMyCut" <${env.MAIL_USER}>`,
+    await resend.emails.send({
+      from: "BookMyCut <onboarding@resend.dev>", // default sender
       to,
       subject,
-      html
+      html,
     });
 
     console.log(`OTP mail sent to ${to}`);
     return true;
   } catch (err) {
     console.error("Mail error:", err);
-    return false;   // important
+    return false;
   }
 };
