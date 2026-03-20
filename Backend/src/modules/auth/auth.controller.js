@@ -28,7 +28,50 @@ export const requestOTP = async (req, res) => {
     { upsert: true },
   );
 
-  const mailSent = await sendMail(email, "BookMyCut OTP", `Your OTP is ${otp}`);
+  const mailSent = await sendMail(
+  email,
+  "BookMyCut OTP Verification",
+  `
+  <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+    
+    <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+      
+      <!-- Logo Section -->
+      <div style="text-align: center;">
+        <h1 style="margin: 0; color: #6C63FF;">✂️ BookMyCut</h1>
+        <p style="color: #888; font-size: 14px;">Salon Booking Made Easy</p>
+      </div>
+
+      <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
+
+      <!-- OTP Section -->
+      <h2 style="text-align: center; color: #333;">Your OTP Code</h2>
+      
+      <div style="text-align: center; margin: 20px 0;">
+        <span style="display: inline-block; font-size: 32px; letter-spacing: 8px; font-weight: bold; color: #000;">
+          ${otp}
+        </span>
+      </div>
+
+      <p style="text-align: center; color: #555;">
+        This OTP is valid for <strong>5 minutes</strong>.
+      </p>
+
+      <!-- Info -->
+      <p style="margin-top: 30px; font-size: 13px; color: #999; text-align: center;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+
+    </div>
+
+    <!-- Footer -->
+    <p style="text-align: center; font-size: 12px; color: #aaa; margin-top: 20px;">
+      © ${new Date().getFullYear()} BookMyCut. All rights reserved.
+    </p>
+
+  </div>
+  `
+);
   if (!mailSent) {
     return res.status(500).json({
       message: "Unable to send OTP. Please check the email.",
