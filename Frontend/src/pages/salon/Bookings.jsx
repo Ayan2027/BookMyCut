@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-// Import from salonThunks instead of bookingThunks
 import { fetchSalonBookings, updateSalonBookingStatus } from "../../redux/salon/salonThunks";
 import {
   Calendar,
@@ -17,7 +16,6 @@ import toast from "react-hot-toast";
 export default function SalonBookings() {
   const dispatch = useDispatch();
   
-  // Safely destructure with default empty array to prevent .length errors
   const { myBookings = [], bookingLoading } = useSelector((s) => s.salon);
   const [filter, setFilter] = useState("ALL");
 
@@ -34,7 +32,6 @@ export default function SalonBookings() {
     }
   };
 
-  // Safe filtering logic with fallback
   const filteredList = filter === "ALL" 
     ? (myBookings || []) 
     : (myBookings || []).filter(b => b?.status === filter);
@@ -64,7 +61,7 @@ export default function SalonBookings() {
 
         {/* STATUS FILTERS */}
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start">
-          {["ALL", "PENDING", "ACCEPTED", "COMPLETED"].map((f) => (
+          {["ALL", "PENDING", "CONFIRMED", "ACCEPTED", "COMPLETED"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -93,7 +90,7 @@ export default function SalonBookings() {
             >
               {/* STATUS GLOW LINE */}
               <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                booking.status === 'PENDING' ? 'bg-amber-500' : 
+                (booking.status === 'PENDING' || booking.status === 'CONFIRMED') ? 'bg-amber-500' : 
                 booking.status === 'ACCEPTED' ? 'bg-sky-500' : 
                 booking.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-red-500'
               } opacity-50`} />
@@ -101,8 +98,8 @@ export default function SalonBookings() {
               {/* TIME & DATE UNIT */}
               <div className="flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 rounded-2xl p-4 min-w-[120px]">
                 <span className="text-[10px] font-mono text-zinc-600 uppercase mb-1">Schedule</span>
-                <p className="text-sm font-black text-white">{booking.slotTime}</p>
-                <p className="text-[10px] font-mono text-violet-400 mt-1">{booking.date}</p>
+                <p className="text-sm font-black text-white">{booking.slotTime || "TBD"}</p>
+                <p className="text-[10px] font-mono text-violet-400 mt-1">{booking.date || "NO_DATE"}</p>
               </div>
 
               {/* CLIENT IDENTITY */}
@@ -112,25 +109,30 @@ export default function SalonBookings() {
                   <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Subject_Primary</span>
                 </div>
                 <h3 className="text-lg font-bold text-white uppercase tracking-tighter">
-                  {booking.user?.name || "ANONYMOUS_USER"}
+                  {booking.user?.name || booking.user?.email?.split('@')[0] || "ANONYMOUS"}
                 </h3>
                 <div className="flex items-center justify-center md:justify-start gap-3">
-                   <p className="text-[11px] font-mono text-emerald-500">{booking.user?.phone || "+91 XXXXX XXXXX"}</p>
+                   <p className="text-[11px] font-mono text-emerald-500">{booking.user?.phone || "NO_CONTACT"}</p>
                    <div className="h-1 w-1 bg-zinc-800 rounded-full" />
-                   <p className="text-[11px] font-mono text-zinc-500">{booking.serviceName}</p>
+                   {/* Handle Services Array */}
+                   <p className="text-[11px] font-mono text-zinc-500 uppercase">
+                     {booking.services?.[0]?.name || "CUSTOM_SERVICE"}
+                     {booking.services?.length > 1 && ` (+${booking.services.length - 1})`}
+                   </p>
                 </div>
               </div>
 
               {/* PAYLOAD / PRICE */}
               <div className="px-6 border-x border-white/5 hidden lg:block">
                 <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block mb-1">Revenue_Share</span>
-                <p className="text-xl font-black text-white italic">₹{booking.totalAmount - (booking.platformFee || 0)}</p>
+                <p className="text-xl font-black text-white italic">₹{booking.subtotal || (booking.totalAmount - booking.platformFee)}</p>
                 <p className="text-[8px] font-mono text-zinc-700">Gross: ₹{booking.totalAmount}</p>
               </div>
 
               {/* COMMAND BUTTONS */}
               <div className="flex items-center gap-2">
-                {booking.status === "PENDING" && (
+                {/* Logic expanded to handle CONFIRMED as an actionable state */}
+                {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
                   <button 
                     onClick={() => onStatusChange(booking._id, "ACCEPTED")}
                     className="flex items-center gap-2 bg-white text-black px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-violet-600 hover:text-white transition-all"
@@ -148,7 +150,7 @@ export default function SalonBookings() {
                   </button>
                 )}
 
-                {(booking.status === "PENDING" || booking.status === "ACCEPTED") && (
+                {(booking.status === "PENDING" || booking.status === "CONFIRMED" || booking.status === "ACCEPTED") && (
                   <button 
                     onClick={() => onStatusChange(booking._id, "CANCELLED")}
                     className="p-3 bg-red-500/5 text-red-500 border border-red-500/10 rounded-xl hover:bg-red-500 hover:text-white transition-all"

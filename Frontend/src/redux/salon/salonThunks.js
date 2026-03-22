@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { salonService } from "../../services/salon.service";
+import api from "../../services/api";
 
 export const fetchMySalon = createAsyncThunk(
   "salon/fetchMy",
@@ -69,24 +70,29 @@ export const fetchSalonBookings = createAsyncThunk(
   "salon/fetchBookings",
   async (_, { rejectWithValue }) => {
     try {
-      // Using your bookingService endpoint: /salons/me/bookings
-      const res = await api.get("/salons/me/bookings");
-      return res.data;
+      const res = await api.get("bookings/salons/me");
+      
+      // CRITICAL: Return res.data so the slice gets the array []
+      // Your console.log showed the array is inside res.data
+      console.log("salonbooks data extracted:", res.data); 
+      
+      return res.data; 
     } catch (err) {
       return rejectWithValue(err.response?.data || "Failed to fetch bookings");
     }
   }
 );
-
 export const updateSalonBookingStatus = createAsyncThunk(
   "salon/updateBookingStatus",
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      // Using your bookingService endpoint: /salons/bookings/:id/status
-      const res = await api.put(`/salons/bookings/${id}/status`, { status });
-      return res.data;
+      // Cleaned URL to match your backend: router.put("/salons/:bookingId/status", ...)
+      const res = await api.put(`/bookings/salons/${id}/status`, { status });
+      
+      // We return the updated booking so the Redux slice can update the UI instantly
+      return res.data; 
     } catch (err) {
-      return rejectWithValue(err.response?.data || "Status update failed");
+      return rejectWithValue(err.response?.data || "Protocol_Override: Failed");
     }
   }
 );

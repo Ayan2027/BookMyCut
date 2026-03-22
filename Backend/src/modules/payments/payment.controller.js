@@ -60,7 +60,7 @@ export const verifyPayment = async (req, res) => {
   const booking = await Booking.findById(payment.booking).populate(
     "services user slot salon",
   );
-  console.log("booking ",booking)
+  // console.log("booking ",booking)
   booking.status = "CONFIRMED";
   await booking.save();
 

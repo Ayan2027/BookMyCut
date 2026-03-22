@@ -64,7 +64,7 @@ export default function Dashboard() {
           <Link to="/salon/services">
             <StatCard
               label="Catalog"
-              value={services.length}
+              value={services?.length || 0}
               unit="Services"
               icon={<Scissors size={24} />}
               color="violet"
@@ -73,17 +73,19 @@ export default function Dashboard() {
           <Link to="/salon/slots">
             <StatCard
               label="Availability"
-              value={slots.length}
+              value={slots?.length || 0}
               unit="Active Slots"
               icon={<Calendar size={24} />}
               color="blue"
             />
           </Link>
-          <Link to="/salon/slots">
+          <Link to="/salon/revenue">
             <StatCard
               label="Revenue"
-              value="₹0"
-              unit="Net Wallet"
+              // Dynamically pulling balance from salon state
+              value={`₹${salon?.balance || 0}`}
+              // Showing lifetime earnings as the sub-unit
+              unit={`Lifetime: ₹${salon?.lifetimeEarnings || 0}`}
               icon={<Wallet size={24} />}
               color="emerald"
             />
