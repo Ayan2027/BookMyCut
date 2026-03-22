@@ -1,25 +1,36 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux"; // 
+import { logout } from "../redux/auth/authThunks"; 
 import { 
   BarChart3, Scissors, Package, CreditCard, 
   Building2, Users, ScrollText, Landmark, 
-  ChevronRight, ShieldCheck, Activity, Menu, X 
+  ChevronRight, ShieldCheck, Activity, Menu, X, LogOut 
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Automatically close mobile drawer when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+    toast.success("Admin Session Terminated");
+  };
+
   return (
     <div className="flex min-h-screen bg-[#030303] text-zinc-100 selection:bg-violet-500/30 overflow-hidden relative">
       
-      {/* MOBILE TOP HEADER (Visible only on small screens) */}
+      {/* MOBILE TOP HEADER */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#050505] border-b border-white/5 flex items-center justify-between px-6 z-[60] backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} className="text-white" />
@@ -41,7 +52,7 @@ export default function AdminLayout() {
         />
       )}
 
-      {/* 1. SIDEBAR: THE CONTROL_HUB */}
+      {/* SIDEBAR: THE CONTROL_HUB */}
       <aside className={`
         fixed inset-y-0 left-0 z-[80] transition-transform duration-500 ease-in-out border-r border-white/5 bg-[#050505] flex flex-col
         lg:relative lg:translate-x-0
@@ -49,7 +60,6 @@ export default function AdminLayout() {
         ${isMobileMenuOpen ? "translate-x-0 w-72" : "-translate-x-full"}
       `}>
         
-        {/* Toggle Button (Desktop Only) */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="hidden lg:flex absolute -right-3 top-20 h-6 w-6 bg-violet-600 rounded-full items-center justify-center border border-white/10 hover:scale-110 transition-transform z-50"
@@ -57,15 +67,6 @@ export default function AdminLayout() {
           {isSidebarOpen ? <X size={12} /> : <Menu size={12} />}
         </button>
 
-        {/* Mobile Close Button */}
-        <button 
-          onClick={() => setIsMobileMenuOpen(false)}
-          className="lg:hidden absolute top-6 right-6 text-zinc-500"
-        >
-          <X size={20} />
-        </button>
-
-        {/* BRAND IDENTITY */}
         <div className="p-8 mb-4">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="h-10 w-10 shrink-0 bg-white text-black rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.1)]">
@@ -80,7 +81,6 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        {/* NAVIGATION: COMMANDS */}
         <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className={`text-[10px] font-mono text-zinc-700 uppercase tracking-[0.2em] px-4 mb-4 ${(!isSidebarOpen && !isMobileMenuOpen) && "hidden"}`}>
             System_Control
@@ -107,9 +107,22 @@ export default function AdminLayout() {
           <AdminLink to="/admin/logs" icon={<ScrollText size={18} />} label="Logs" expanded={isSidebarOpen || isMobileMenuOpen} />
         </nav>
 
-        {/* STATUS FOOTER */}
-        <div className="p-6 mt-auto border-t border-white/5 bg-white/[0.01]">
-          <div className="flex items-center gap-3">
+        {/* LOGOUT COMMAND & STATUS */}
+        <div className="mt-auto border-t border-white/5 bg-white/[0.01]">
+          <button 
+            onClick={handleLogout}
+            className={`
+              w-full flex items-center gap-4 px-8 py-5 text-zinc-500 hover:text-red-500 hover:bg-red-500/5 transition-all duration-300 group
+              ${(!isSidebarOpen && !isMobileMenuOpen) ? "justify-center px-0" : ""}
+            `}
+          >
+            <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
+            {(isSidebarOpen || isMobileMenuOpen) && (
+              <span className="text-[11px] font-bold uppercase tracking-widest">Terminate_Session</span>
+            )}
+          </button>
+
+          <div className="px-8 py-4 flex items-center gap-3">
             <div className="relative">
                 <div className="h-2 w-2 bg-emerald-500 rounded-full animate-ping absolute inset-0" />
                 <div className="h-2 w-2 bg-emerald-500 rounded-full relative" />
@@ -121,12 +134,10 @@ export default function AdminLayout() {
         </div>
       </aside>
 
-      {/* 2. MAIN WORKSPACE */}
+      {/* MAIN WORKSPACE */}
       <main className="flex-1 flex flex-col relative h-screen overflow-hidden mt-16 lg:mt-0">
         <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-          {/* Ambient Glow */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/[0.03] blur-[120px] pointer-events-none" />
-          
           <div className="relative z-10 p-6 lg:p-10">
             <Outlet />
           </div>

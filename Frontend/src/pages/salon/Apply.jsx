@@ -1,71 +1,130 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom"; // Added for navigation
 import { applySalon } from "../../redux/salon/salonThunks";
+import { logout } from "../../redux/auth/authThunks"; // Added for logout
 import api from "../../services/api";
-import { MapPin, Phone, Store, Image as ImageIcon, Sparkles, Globe } from "lucide-react";
+import { MapPin, Phone, Store, Image as ImageIcon, Sparkles, Globe, LogOut } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Apply() {
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // Initialize navigate
 
   const [form, setForm] = useState({
     name: "",
     description: "",
     address: "",
     city: "",
-    phone: "", // NEW FIELD
+    phone: "",
     mapLink: "",
   });
 
   const [imageUrl, setImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
+  // Logout Handler
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+    toast.success("Logged out successfully");
+  };
+
   // image upload
   const uploadImage = async (file) => {
+    if (!file) return;
     try {
       setIsUploading(true);
       const data = new FormData();
       data.append("file", file);
       const res = await api.post("/upload", data);
       setImageUrl(res.data.url);
+      toast.success("Identity asset uploaded.");
     } catch (err) {
       console.error("Upload failed", err);
+      toast.error("Upload failed. Try a smaller image.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // map link validation
+  // Validations
   const isValidMapLink = (url) => {
     try {
       const parsed = new URL(url);
       const host = parsed.hostname;
-      return (
-        host.includes("google.com") ||
-        host.includes("goo.gl")
-      );
+      return host.includes("google.com") || host.includes("goo.gl");
     } catch {
       return false;
     }
+  };
+
+  const isValidPhone = (phone) => {
+    return /^\d{10}$/.test(phone.replace(/\D/g, ""));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!isValidMapLink(form.mapLink)) {
-      alert("Please enter a valid Google Maps link");
+      toast.error("Invalid Geo_Coordinates. Use a Google Maps link.");
       return;
     }
 
-    await dispatch(
-      applySalon({
-        ...form,
-        image: imageUrl,
-      }),
-    );
+    if (!isValidPhone(form.phone)) {
+      toast.error("Invalid Contact_Protocol. 10 digits required.");
+      return;
+    }
+
+    if (!imageUrl) {
+      toast.error("Visual_Identity (image) is required.");
+      return;
+    }
+
+    try {
+      const resultAction = await dispatch(
+        applySalon({
+          ...form,
+          image: imageUrl,
+        })
+      );
+
+      if (applySalon.fulfilled.match(resultAction)) {
+        toast.success("Application transmitted successfully.");
+      } else {
+        toast.error("Protocol failed. Check your data.");
+      }
+    } catch (err) {
+      toast.error("Network synchronization error.");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-zinc-100 p-6 lg:p-12 selection:bg-violet-500/30">
+    <div className="min-h-screen bg-[#030303] text-zinc-100 p-6 lg:p-12 selection:bg-violet-500/30 relative">
+      <Toaster 
+        position="top-right" 
+        toastOptions={{
+          style: {
+            background: '#111',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            fontSize: '12px',
+            fontFamily: 'monospace'
+          }
+        }} 
+      />
+
+      {/* COOL LOGOUT TRIGGER */}
+      <div className="fixed top-6 right-6 lg:top-12 lg:right-12 z-50">
+        <button 
+          onClick={handleLogout}
+          className="group flex items-center gap-3 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/50 px-5 py-2.5 rounded-full transition-all duration-300 backdrop-blur-md"
+        >
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-zinc-500 group-hover:text-red-400 transition-colors">LogOut</span>
+          <LogOut size={16} className="text-zinc-500 group-hover:text-red-400" />
+        </button>
+      </div>
+
       <div className="max-w-3xl mx-auto space-y-10">
         
         {/* HEADER */}
@@ -96,7 +155,7 @@ export default function Apply() {
               />
             </div>
 
-            {/* Phone Number - NEW FIELD */}
+            {/* Phone Number */}
             <div className="space-y-2">
               <label className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest ml-1">Contact_Protocol</label>
               <div className="relative">
@@ -151,7 +210,7 @@ export default function Apply() {
           <div className="space-y-2">
             <label className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest ml-1 flex justify-between">
               Geo_Coordinates
-              <a href="https://maps.google.com" target="_blank" className="text-violet-500 lowercase hover:underline flex items-center gap-1">
+              <a href="https://maps.google.com" target="_blank" rel="noreferrer" className="text-violet-500 lowercase hover:underline flex items-center gap-1">
                 <Globe size={10} /> source_map
               </a>
             </label>
