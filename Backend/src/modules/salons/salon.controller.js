@@ -87,7 +87,7 @@ export const applySalon = async (req, res) => {
       location,
       phone, // NEW FIELD
     });
-    console.log("come here")
+
     res.json({
       message: "Salon application submitted",
       salon,
@@ -102,24 +102,30 @@ export const applySalon = async (req, res) => {
 
 export const getMySalon = async (req, res) => {
   try {
-    console.log("User ID:", req.user._id);
-
     const salon = await Salon.findOne({ owner: req.user._id });
-
-    console.log("Salon found:", salon);
 
     if (!salon) {
       return res.json({ exists: false });
     }
 
+    // --- PRO-TIP: SENSITIVE DATA STRIPPING ---
+    // If you ever add internal admin notes or private docs, 
+    // you might want to pick specific fields here.
+    
     res.json({
       exists: true,
       status: salon.status,
-      salon,
+      salon: {
+        ...salon._doc,
+        // Fallback to 0 if the field doesn't exist in older DB entries
+        balance: salon.balance || 0,
+        lifetimeEarnings: salon.lifetimeEarnings || 0,
+        totalBookings: salon.totalBookings || 0
+      },
     });
   } catch (err) {
     console.error("getMySalon error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal_Server_Error: Terminal_Access_Denied" });
   }
 };
 

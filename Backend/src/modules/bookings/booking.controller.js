@@ -1,6 +1,27 @@
 import Booking from "./booking.model.js";
 import Slot from "../slots/slot.model.js";
 import Service from "../services/service.model.js";
+import Salon from "../salons/salon.model.js";
+
+/* Salon gets its own bookings */
+export const getSalonBookings = async (req, res) => {
+  try {
+    console.log("in getsalonbookings")
+    // 1. Find the salon owned by the logged-in user
+    const salon = await Salon.findOne({ owner: req.user._id });
+    if (!salon) return res.status(404).json({ message: "Salon profile not found" });
+    
+    // 2. Find all bookings linked to this salon
+    const bookings = await Booking.find({ salon: salon._id })
+      .populate("user", "name phone email") // Populate customer details
+      .populate("services")
+      .sort({ createdAt: -1 });
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch registry" });
+  }
+};
 
 /* User creates booking */
 export const createBooking = async (req, res) => {
@@ -46,20 +67,45 @@ export const getMyBookings = async (req, res) => {
 
 /* Salon updates booking status */
 export const updateBookingStatus = async (req, res) => {
-  const booking = await Booking.findById(req.params.bookingId)
-    .populate("slot salon");
+  try {
+    const { status } = req.body;
+    const { bookingId } = req.params;
 
-  if (!booking) return res.status(404).json({ message: "Booking not found" });
+    const booking = await Booking.findById(bookingId).populate("slot salon");
+    if (!booking) return res.status(404).json({ message: "Booking_Not_Found" });
 
-  if (String(booking.salon.owner) !== String(req.user._id)) {
-    return res.status(403).json({ message: "Not your booking" });
+    if (String(booking.salon.owner) !== String(req.user._id)) {
+      return res.status(403).json({ message: "Unauthorized_Access" });
+    }
+
+    // --- FINANCIAL SETTLEMENT LOGIC ---
+    // We only process funds if transitioning to COMPLETED for the first time
+    if (status === "COMPLETED" && booking.status !== "COMPLETED") {
+      const netPayout = booking.subtotal; 
+
+      await Salon.findByIdAndUpdate(booking.salon._id, {
+        $inc: { 
+          balance: netPayout, 
+          lifetimeEarnings: netPayout,
+          totalBookings: 1 
+        }
+      });
+      
+      console.log(`SETTLEMENT_LOG: ₹${netPayout} transferred to Salon balance.`);
+    }
+
+    // --- SLOT MANAGEMENT ---
+    if (status === "CANCELLED") {
+      await Slot.findByIdAndUpdate(booking.slot._id, { status: "AVAILABLE" });
+    } else {
+      await Slot.findByIdAndUpdate(booking.slot._id, { status: "BOOKED" });
+    }
+
+    booking.status = status;
+    await booking.save();
+
+    res.json(booking);
+  } catch (err) {
+    res.status(500).json({ message: "Protocol_Update_Failed" });
   }
-
-  booking.status = req.body.status;
-  await booking.save();
-
-  res.json(booking);
 };
-
-
-
