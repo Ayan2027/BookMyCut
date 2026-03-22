@@ -4,7 +4,9 @@ import {
   applySalon,
   updateSalon,
   fetchSalons,
-  fetchSalonById // Ensure this is imported from your thunks
+  fetchSalonById,
+  fetchSalonBookings,
+  updateSalonBookingStatus
 } from "./salonThunks";
 
 const initialState = {
@@ -12,7 +14,9 @@ const initialState = {
   status: null,
   salon: null,
   salons: [],
+  myBookings: [],
   loading: false,
+  bookingLoading: false,
   error: null
 };
 
@@ -27,6 +31,7 @@ const salonSlice = createSlice({
       /* 1. FETCH MY SALON (Owner Side) */
       .addCase(fetchMySalon.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchMySalon.fulfilled, (state, action) => {
         state.loading = false;
@@ -36,7 +41,7 @@ const salonSlice = createSlice({
       })
       .addCase(fetchMySalon.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload?.message || action.error.message;
       })
 
       /* 2. FETCH SALON BY ID (Public/Customer Side) */
@@ -46,7 +51,7 @@ const salonSlice = createSlice({
       })
       .addCase(fetchSalonById.fulfilled, (state, action) => {
         state.loading = false;
-        state.salon = action.payload; // Public route returns the salon object directly
+        state.salon = action.payload;
         state.exists = !!action.payload;
         state.status = action.payload?.status || null;
       })
@@ -68,7 +73,7 @@ const salonSlice = createSlice({
       })
       .addCase(applySalon.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error?.message || "Application failed";
+        state.error = action.payload || "Application failed";
       })
 
       /* 4. UPDATE SALON */
@@ -86,6 +91,26 @@ const salonSlice = createSlice({
       })
       .addCase(fetchSalons.rejected, (state) => {
         state.loading = false;
+      })
+
+      /* 6. FETCH SALON BOOKINGS (Owner Only) */
+      .addCase(fetchSalonBookings.pending, (state) => {
+        state.bookingLoading = true;
+      })
+      .addCase(fetchSalonBookings.fulfilled, (state, action) => {
+        state.bookingLoading = false;
+        state.myBookings = action.payload;
+      })
+      .addCase(fetchSalonBookings.rejected, (state) => {
+        state.bookingLoading = false;
+      })
+
+      /* 7. UPDATE BOOKING STATUS */
+      .addCase(updateSalonBookingStatus.fulfilled, (state, action) => {
+        const index = state.myBookings.findIndex(b => b._id === action.payload._id);
+        if (index !== -1) {
+          state.myBookings[index] = action.payload;
+        }
       });
   }
 });

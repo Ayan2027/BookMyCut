@@ -83,10 +83,9 @@ export const requestOTP = async (req, res) => {
 /* Step 2 – Verify OTP */
 export const verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
-  console.log("bhghg")
 
   const reqRow = await SignupRequest.findOne({ email });
-  console.log("reqrow", reqRow)
+
   if (!reqRow || reqRow.otp !== otp)
     return res.status(400).json({ message: "Invalid OTP" });
 

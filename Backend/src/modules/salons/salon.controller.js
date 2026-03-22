@@ -6,13 +6,13 @@ import Slot from "../slots/slot.model.js";
 export const applySalon = async (req, res) => {
   try {
     const exists = await Salon.findOne({ owner: req.user._id });
-
+    
     if (exists) {
       return res.status(400).json({
         message: "Salon already exists for this user",
       });
     }
-
+    
     const { name, description, address, city, image, mapLink, phone } = req.body;
 
     // Required fields
@@ -23,11 +23,11 @@ export const applySalon = async (req, res) => {
     }
 
     // Basic phone validation (must start with + and country code)
-    if (!phone.startsWith("+")) {
-      return res.status(400).json({
-        message: "Phone must include country code (e.g. +919876543210)",
-      });
-    }
+    // if (!phone.startsWith("+")) {
+    //   return res.status(400).json({
+    //     message: "Phone must include country code (e.g. +919876543210)",
+    //   });
+    // }
 
     let location = null;
 
@@ -87,7 +87,7 @@ export const applySalon = async (req, res) => {
       location,
       phone, // NEW FIELD
     });
-
+    console.log("come here")
     res.json({
       message: "Salon application submitted",
       salon,

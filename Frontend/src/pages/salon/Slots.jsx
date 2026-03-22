@@ -53,10 +53,11 @@ export default function Slots() {
             <div className="relative group">
               <div className="absolute inset-0 bg-sky-500/20 blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
               <input
-                type="date"
-                className="relative w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-sky-400 focus:outline-none focus:border-sky-500 transition-all font-mono"
-                onChange={(e) => setDate(e.target.value)}
-              />
+  type="date"
+  className="relative w-full bg-black border border-white/10 rounded-2xl px-6 py-4 text-sky-400 focus:outline-none focus:border-sky-500 transition-all font-mono [color-scheme:dark]"
+  onChange={(e) => setDate(e.target.value)}
+  onClick={(e) => e.target.showPicker()} // This triggers the calendar on click
+/>
             </div>
 
             <button

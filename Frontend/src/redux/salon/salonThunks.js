@@ -62,3 +62,31 @@ export const fetchSalonById = createAsyncThunk(
     return res.data;
   }
 );
+
+
+
+export const fetchSalonBookings = createAsyncThunk(
+  "salon/fetchBookings",
+  async (_, { rejectWithValue }) => {
+    try {
+      // Using your bookingService endpoint: /salons/me/bookings
+      const res = await api.get("/salons/me/bookings");
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Failed to fetch bookings");
+    }
+  }
+);
+
+export const updateSalonBookingStatus = createAsyncThunk(
+  "salon/updateBookingStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      // Using your bookingService endpoint: /salons/bookings/:id/status
+      const res = await api.put(`/salons/bookings/${id}/status`, { status });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Status update failed");
+    }
+  }
+);
