@@ -26,3 +26,31 @@
   scrollbar-width: thin;
   scrollbar-color: #27272a #050505;
 }
+
+
+
+/* ai */
+.ai-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.preview {
+  width: 200px;
+  margin-top: 15px;
+  border-radius: 10px;
+}
+
+.result {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.card {
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}

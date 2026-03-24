@@ -48,6 +48,11 @@ import AdminSalons from "../pages/admin/Salons";
 import AdminPayments from "../pages/admin/Payments";
 import AdminBookings from "../pages/admin/Bookings";
 
+// ai
+import Hairstyle from "../pages/ai/Hairstyle";
+
+
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -79,7 +84,7 @@ export default function AppRoutes() {
             <Route path="/app/account" element={<Account />} />
 
             <Route path="/app/profile" element={<UserProfile />} />
-
+            <Route path="/ai" element={<Hairstyle />} />
             {/* NEW BOOK FLOW
             <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
             <Route path="/app/bookings/success" element={<BookingSuccess />} /> */}

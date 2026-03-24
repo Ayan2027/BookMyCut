@@ -6,6 +6,7 @@ import Wallet from "../wallets/wallet.model.js";
 import Slot from "../slots/slot.model.js";
 import Salon from "../salons/salon.model.js";
 import { sendWhatsAppMessage } from "../../services/whatsapp.service.js";
+import { sendSMS } from "../../services/sms.service.js";
 
 /* Create Razorpay order */
 export const createOrder = async (req, res) => {
@@ -58,9 +59,9 @@ export const verifyPayment = async (req, res) => {
 
   // Confirm booking
   const booking = await Booking.findById(payment.booking).populate(
-    "services user slot salon",
+    "services user slot salon"
   );
-  // console.log("booking ",booking)
+
   booking.status = "CONFIRMED";
   await booking.save();
 
@@ -71,29 +72,58 @@ export const verifyPayment = async (req, res) => {
   const wallet = await Wallet.findOneAndUpdate(
     { salon: payment.salon },
     { $inc: { balance: payment.salonEarning } },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
 
-  // Send WhatsApp to salon
+  // Send WhatsApp messages
   try {
-    const salon = await Salon.findById(booking.salon);
+    const salon = booking.salon;
+    const user = booking.user;
 
+    const serviceNames = booking.services.map((s) => s.name).join(", ");
+
+    // 💇 SALON MESSAGE
+    const salonMessage = `✂️ *New Booking Received*
+
+👤 Customer: ${user?.name || "Customer"}
+📞 Phone: ${user?.phone || "N/A"}
+
+💇 Service: ${serviceNames}
+
+📅 Date: ${booking.slot?.date}
+⏰ Time: ${booking.slot?.startTime}
+
+💰 Amount: ₹${booking.totalAmount}
+
+🆔 Booking ID: ${booking._id}
+
+✅ Please be ready for the customer.`;
+
+    // 👤 CUSTOMER MESSAGE
+    const userMessage = `✅ *Booking Confirmed!*
+
+Hi ${user?.name || "Customer"} 👋
+
+Your appointment is successfully booked 💇
+
+📅 ${booking.slot?.date}
+⏰ ${booking.slot?.startTime}
+
+💰 ₹${booking.totalAmount}
+
+📍 Salon: ${salon?.name}
+
+Thank you for choosing us ❤️`;
+
+    // ⚡ Send messages
     if (salon?.phone) {
-      const serviceNames = booking.services.map((s) => s.name).join(", ");
-
-      const message = `
-New Booking Received
-
-Customer: ${booking.user?.name || booking.user?.email || "customer" }
-Service: ${serviceNames}
-Date: ${booking.slot?.date}
-Time: ${booking.slot?.startTime}
-
-Amount: ₹${booking.totalAmount}
-Booking ID: ${booking._id}
-`;
-      await sendWhatsAppMessage(salon.phone, message);
+      await sendWhatsAppMessage(salon.phone, salonMessage);
     }
+
+    // if (user?.phone) {
+    //   await sendWhatsAppMessage(user.phone, userMessage);
+    // }
+
   } catch (err) {
     console.error("WhatsApp send failed:", err.message);
   }
