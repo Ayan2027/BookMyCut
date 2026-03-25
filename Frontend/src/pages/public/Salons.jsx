@@ -109,10 +109,10 @@ function SalonCard({ salon, onClick }) {
           {salon.description || "Premium styling and grooming experience tailored to your unique identity."}
         </p>
 
-        <div className="pt-2 flex items-center justify-between border-t border-white/5">
+        {/* <div className="pt-2 flex items-center justify-between border-t border-white/5">
            <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">Min_Rate</span>
            <span className="text-sm font-bold text-zinc-300 tracking-tight italic">₹80+</span>
-        </div>
+        </div> */}
       </div>
     </div>
   );
