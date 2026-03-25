@@ -3,7 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { requestOtp } from "../../redux/auth/authThunks";
 import { useNavigate, Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Mail, Lock, User, Scissors, ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import { 
+  Mail, Lock, User, Scissors, ShieldCheck, 
+  ArrowRight, Loader2, Eye, EyeOff 
+} from "lucide-react";
 
 export default function Signup() {
   const dispatch = useDispatch();
@@ -13,6 +16,7 @@ export default function Signup() {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
     role: "USER"
   });
 
@@ -23,10 +27,31 @@ export default function Signup() {
   }, [error]);
 
   const submit = async () => {
-    if (!form.email || !form.password) {
-      toast.error("Email and password required");
+    const { email, password, confirmPassword } = form;
+
+    // 1. Mandatory Field Check
+    if (!email || !password || !confirmPassword) {
+      toast.error("All authentication fields required");
       return;
     }
+
+    // 2. Restricted Password Protocol
+    // ^(?=.*[A-Za-z]) -> At least one letter
+    // (?=.*\d)        -> At least one digit
+    // .{6,10}$        -> Length between 6 and 10
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,10}$/;
+
+    if (!passwordRegex.test(password)) {
+      toast.error("Password must be 6-10 chars with letters & digits");
+      return;
+    }
+
+    // 3. Mismatch Verification
+    if (password !== confirmPassword) {
+      toast.error("Password Mismatch: Verify Credentials");
+      return;
+    }
+
     const res = await dispatch(requestOtp(form));
     if (requestOtp.fulfilled.match(res)) {
       navigate("/verify-otp", { state: { email: form.email } });
@@ -36,7 +61,6 @@ export default function Signup() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">
       <div className="w-full max-w-[480px] group relative">
-        
         {/* ATMOSPHERIC GLOW */}
         <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/20 to-sky-600/20 rounded-[3rem] blur-3xl opacity-50 group-hover:opacity-100 transition duration-1000" />
 
@@ -56,8 +80,7 @@ export default function Signup() {
           </div>
 
           <div className="space-y-6">
-            
-            {/* ADVANCED ROLE SELECTION (Segmented Cards) */}
+            {/* ROLE SELECTION */}
             <div className="grid grid-cols-2 gap-4">
               <RoleCard 
                 active={form.role === "USER"} 
@@ -84,11 +107,18 @@ export default function Signup() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
               <EliteInput 
-                type="password"
+                isPassword
                 icon={<Lock size={18} />}
                 placeholder="Secure Password"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+              <EliteInput 
+                isPassword
+                icon={<ShieldCheck size={18} />}
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
               />
             </div>
 
@@ -108,7 +138,6 @@ export default function Signup() {
                 )}
               </span>
             </button>
-
           </div>
 
           <p className="mt-8 text-center text-zinc-600 text-[10px] font-mono tracking-widest uppercase">
@@ -120,7 +149,37 @@ export default function Signup() {
   );
 }
 
-// ADVANCED COMPONENT: Role Selection Card
+// COMPONENT: Elite Input with Visibility Toggle
+function EliteInput({ isPassword = false, icon, placeholder, value, onChange }) {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="relative group/input">
+      <div className="absolute inset-y-0 left-4 flex items-center text-zinc-600 group-focus-within/input:text-violet-400 transition-colors">
+        {icon}
+      </div>
+      <input
+        type={isPassword ? (show ? "text" : "password") : "text"}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-12 py-4 text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all font-medium"
+      />
+      
+      {isPassword && (
+        <button
+          type="button"
+          tabIndex="-1" // Prevent tab focusing the eye icon
+          onClick={() => setShow(!show)}
+          className="absolute inset-y-0 right-4 flex items-center text-zinc-600 hover:text-violet-400 transition-colors"
+        >
+          {show ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function RoleCard({ active, onClick, icon, label, description }) {
   return (
     <button
@@ -144,23 +203,5 @@ function RoleCard({ active, onClick, icon, label, description }) {
         <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-violet-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,1)]" />
       )}
     </button>
-  );
-}
-
-// ADVANCED COMPONENT: Elite Input
-function EliteInput({ type = "text", icon, placeholder, value, onChange }) {
-  return (
-    <div className="relative group/input">
-      <div className="absolute inset-y-0 left-4 flex items-center text-zinc-600 group-focus-within/input:text-violet-400 transition-colors">
-        {icon}
-      </div>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className="w-full bg-white/[0.03] border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-zinc-200 placeholder:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all font-medium"
-      />
-    </div>
   );
 }
