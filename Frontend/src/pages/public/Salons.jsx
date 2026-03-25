@@ -68,12 +68,16 @@ export default function Salons() {
 }
 
 function SalonCard({ salon, onClick }) {
+  // Logic to handle missing or zero ratings gracefully
+  const avgRating = salon.averageRating || 0;
+  const reviewCount = salon.totalReviews || 0;
+
   return (
     <div 
       onClick={onClick}
       className="group relative bg-[#080808] border border-white/5 rounded-[1.5rem] overflow-hidden transition-all duration-500 hover:border-violet-500/30 hover:bg-white/[0.02] cursor-pointer"
     >
-      {/* RECTANGULAR IMAGE LAYER (16:9 Aspect Ratio) */}
+      {/* RECTANGULAR IMAGE LAYER */}
       <div className="relative aspect-video overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-80 z-10" />
         <img
@@ -82,25 +86,33 @@ function SalonCard({ salon, onClick }) {
           className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-transform duration-1000 group-hover:scale-110"
         />
         
-        {/* SMALLER BADGE */}
+        {/* TOP LEFT: VERIFIED BADGE */}
         <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg">
-          <Star size={10} className="text-violet-400 fill-violet-400" />
-          <span className="text-[8px] font-black tracking-[0.2em] uppercase text-white">Verified</span>
+          <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[8px] font-black tracking-[0.2em] uppercase text-white/70">Verified_Node</span>
+        </div>
+
+        {/* TOP RIGHT: FLOATING RATING BADGE */}
+        <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-1">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-600/20 backdrop-blur-xl border border-violet-500/30 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.1)]">
+            <Star size={12} className="text-violet-400 fill-violet-400" />
+            <span className="text-sm font-black text-white italic">{avgRating > 0 ? avgRating.toFixed(1) : "N/A"}</span>
+          </div>
         </div>
       </div>
 
-      {/* TIGHTER CONTENT LAYER */}
-      <div className="p-6 space-y-3">
+      {/* CONTENT LAYER */}
+      <div className="p-6 space-y-4">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-zinc-600 text-[9px] font-mono tracking-widest uppercase">
-              <MapPin size={10} /> {salon.city}
+              <MapPin size={10} className="text-violet-500/50" /> {salon.city} — {salon.address}
             </div>
-            <h3 className="text-xl font-black tracking-tighter uppercase italic leading-none group-hover:text-violet-400 transition-colors">
+            <h3 className="text-2xl font-black tracking-tighter uppercase italic leading-none group-hover:text-violet-400 transition-colors">
               {salon.name}
             </h3>
           </div>
-          <div className="h-10 w-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
+          <div className="h-10 w-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:bg-violet-500 group-hover:text-white transition-all duration-500 shadow-lg">
              <ArrowUpRight size={18} />
           </div>
         </div>
@@ -109,15 +121,31 @@ function SalonCard({ salon, onClick }) {
           {salon.description || "Premium styling and grooming experience tailored to your unique identity."}
         </p>
 
-        {/* <div className="pt-2 flex items-center justify-between border-t border-white/5">
-           <span className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest">Min_Rate</span>
-           <span className="text-sm font-bold text-zinc-300 tracking-tight italic">₹80+</span>
-        </div> */}
+        {/* METRIC FOOTER: RATING & REVIEWS */}
+        <div className="pt-4 flex items-center justify-between border-t border-white/5">
+          <div className="flex flex-col gap-1">
+             <span className="text-[8px] font-mono text-zinc-700 uppercase tracking-[0.3em]">Protocol_Score</span>
+             <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <div 
+                    key={star} 
+                    className={`h-1 w-4 rounded-full transition-colors duration-500 ${star <= Math.round(avgRating) ? "bg-violet-500" : "bg-zinc-900"}`} 
+                  />
+                ))}
+             </div>
+          </div>
+          
+          <div className="text-right">
+             <span className="text-[8px] font-mono text-zinc-700 uppercase tracking-[0.3em] block mb-1">Engagements</span>
+             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-tighter italic bg-white/5 px-2 py-0.5 rounded border border-white/5">
+               {reviewCount} {reviewCount === 1 ? 'Review' : 'Reviews'}
+             </span>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
 function LoadingGrid() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

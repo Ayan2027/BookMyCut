@@ -9,22 +9,23 @@ const salonSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   image: String,
   mapLink: String,
-  
+
   // --- FINANCIAL REGISTRY ---
-  balance: { type: Number, default: 0 },          // Current money they can withdraw
+  balance: { type: Number, default: 0 }, // Current money they can withdraw
   lifetimeEarnings: { type: Number, default: 0 }, // Total ever earned (for badges/stats)
-  
+
   status: {
     type: String,
     enum: ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"],
-    default: "PENDING"
+    default: "PENDING",
   },
 
-  rating: { type: Number, default: 0 },
+  averageRating: { type: Number, default: 0 },
+  totalReviews: { type: Number, default: 0 },
   totalBookings: { type: Number, default: 0 },
 
   appliedAt: { type: Date, default: Date.now },
-  approvedAt: Date
+  approvedAt: Date,
 });
 
 export default mongoose.model("Salon", salonSchema);
