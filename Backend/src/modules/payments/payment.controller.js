@@ -9,6 +9,7 @@ import { sendWhatsAppMessage } from "../../services/whatsapp.service.js";
 import { sendSMS } from "../../services/sms.service.js";
 import { sendMail } from "../../services/mail.service.js";
 
+
 /* Create Razorpay order */
 export const createOrder = async (req, res) => {
   const { bookingId } = req.body;
@@ -165,5 +166,41 @@ export const verifyPayment = async (req, res) => {
   } catch (error) {
     console.error("Verify Payment Error:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+export const webhookHandler = async (req, res) => {
+  try {
+    const signature = req.headers["x-razorpay-signature"];
+
+    const expected = crypto
+      .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
+      .update(req.body) // raw body
+      .digest("hex");
+
+    if (expected !== signature) {
+      console.log("❌ Webhook signature invalid");
+      return res.status(400).send("Invalid signature");
+    }
+
+    const data = JSON.parse(req.body.toString());
+
+    console.log("📩 Webhook received:", data.event);
+
+    if (data.event === "payment.captured") {
+      const paymentId = data.payload.payment.entity.id;
+      const orderId = data.payload.payment.entity.order_id;
+
+      console.log("💰 Payment captured via webhook:", paymentId);
+
+      // Optional: double verification / backup update
+    }
+
+    return res.status(200).send("OK");
+  } catch (err) {
+    console.error("Webhook error:", err);
+    return res.status(500).send("Error");
   }
 };

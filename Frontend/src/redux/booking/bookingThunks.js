@@ -34,6 +34,7 @@ export const createBooking = createAsyncThunk(
 
 export const fetchMyBookings = createAsyncThunk("booking/fetchMy", async () => {
   const res = await api.get("/bookings/me");
+  console.log("userbookings ",res.data)
   return res.data;
 });
 
