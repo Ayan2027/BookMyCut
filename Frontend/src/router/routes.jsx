@@ -20,6 +20,7 @@ import Signup from "../pages/public/Signup";
 import VerifyOtp from "../pages/public/VerifyOtp";
 import Salons from "../pages/public/Salons";
 import SalonDetails from "../pages/public/SalonDetails";
+import Contact from "../pages/public/Contact"; // NEW: Import Contact Page
 
 /* System Pages */
 import Forbidden from "../pages/system/Forbidden";
@@ -30,8 +31,6 @@ import UserDashboard from "../pages/user/Dashboard";
 import UserBookings from "../pages/user/Bookings";
 import Account from "../pages/user/Account";
 import UserProfile from "../pages/user/Profile";
-// import BookFlow from "../pages/user/BookFlow";
-// import BookingSuccess from "../pages/user/BookingSuccess";
 
 /* Salon Pages */
 import SalonServices from "../pages/salon/Services";
@@ -51,43 +50,40 @@ import AdminBookings from "../pages/admin/Bookings";
 // ai
 import Hairstyle from "../pages/ai/Hairstyle";
 
-
-
 export default function AppRoutes() {
   return (
     <Routes>
       {/* LANDING */}
       <Route path="/" element={<RoleRedirect />} />
-
+      <Route path="/contact" element={<Contact />} /> 
       {/* PUBLIC */}
       <Route element={<PublicLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
-
         <Route path="/salons" element={<Salons />} />
         <Route path="/salons/:salonId" element={<SalonDetails />} />
+        
+        {/* NEW: Open Access Route */}
+        
       </Route>
 
       <Route path="/403" element={<Forbidden />} />
 
       {/* USER */}
-
       <Route element={<AuthGuard />}>
         <Route element={<RoleGuard role="USER" />}>
           <Route element={<UserLayout />}>
             <Route path="/app" element={<UserDashboard />} />
             <Route path="/app/bookings" element={<UserBookings />} />
-
             <Route path="/app/salons" element={<Salons />} />
             <Route path="/app/salons/:salonId" element={<SalonDetails />} />
             <Route path="/app/account" element={<Account />} />
-
             <Route path="/app/profile" element={<UserProfile />} />
             <Route path="/ai" element={<Hairstyle />} />
-            {/* NEW BOOK FLOW
-            <Route path="/app/salons/:salonId/book" element={<BookFlow />} />
-            <Route path="/app/bookings/success" element={<BookingSuccess />} /> */}
+            
+            {/* User can also access contact inside the app if needed */}
+            <Route path="/app/contact" element={<Contact />} />
           </Route>
         </Route>
       </Route>
@@ -97,7 +93,6 @@ export default function AppRoutes() {
         <Route element={<RoleGuard role="SALON" />}>
           <Route element={<SalonLayout />}>
             <Route path="/salon" element={<SalonEntry />} />
-
             <Route element={<SalonApprovedGuard />}>
               <Route path="/salon/dashboard" element={<Dashboard />} />
               <Route path="/salon/services" element={<SalonServices />} />
@@ -118,7 +113,6 @@ export default function AppRoutes() {
             <Route path="/admin/salons" element={<AdminSalons />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
-            
           </Route>
         </Route>
       </Route>

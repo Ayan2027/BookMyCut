@@ -7,6 +7,7 @@ import Slot from "../slots/slot.model.js";
 import Salon from "../salons/salon.model.js";
 import { sendWhatsAppMessage } from "../../services/whatsapp.service.js";
 import { sendSMS } from "../../services/sms.service.js";
+import { sendMail } from "../../services/mail.service.js";
 
 /* Create Razorpay order */
 export const createOrder = async (req, res) => {
@@ -36,97 +37,133 @@ export const createOrder = async (req, res) => {
   res.json({ order, paymentId: payment._id });
 };
 
-/* Verify Razorpay payment */
+
 export const verifyPayment = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
-
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
-  const expected = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(body)
-    .digest("hex");
-
-  if (expected !== razorpay_signature)
-    return res.status(400).json({ message: "Invalid signature" });
-
-  const payment = await Payment.findOne({ razorpayOrderId: razorpay_order_id });
-  if (!payment) return res.status(404).json({ message: "Payment not found" });
-
-  payment.status = "PAID";
-  payment.razorpayPaymentId = razorpay_payment_id;
-  await payment.save();
-
-  // Confirm booking
-  const booking = await Booking.findById(payment.booking).populate(
-    "services user slot salon"
-  );
-
-  booking.status = "CONFIRMED";
-  await booking.save();
-
-  // Block slot
-  await Slot.findByIdAndUpdate(booking.slot, { status: "BOOKED" });
-
-  // Credit wallet
-  const wallet = await Wallet.findOneAndUpdate(
-    { salon: payment.salon },
-    { $inc: { balance: payment.salonEarning } },
-    { upsert: true, new: true }
-  );
-
-  // Send WhatsApp messages
   try {
-    const salon = booking.salon;
-    const user = booking.user;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
-    const serviceNames = booking.services.map((s) => s.name).join(", ");
-
-    // 💇 SALON MESSAGE
-    const salonMessage = `✂️ *New Booking Received*
-
-👤 Customer: ${user?.name || "Customer"}
-📞 Phone: ${user?.phone || "N/A"}
-
-💇 Service: ${serviceNames}
-
-📅 Date: ${booking.slot?.date}
-⏰ Time: ${booking.slot?.startTime}
-
-💰 Amount: ₹${booking.totalAmount}
-
-🆔 Booking ID: ${booking._id}
-
-✅ Please be ready for the customer.`;
-
-    // 👤 CUSTOMER MESSAGE
-    const userMessage = `✅ *Booking Confirmed!*
-
-Hi ${user?.name || "Customer"} 👋
-
-Your appointment is successfully booked 💇
-
-📅 ${booking.slot?.date}
-⏰ ${booking.slot?.startTime}
-
-💰 ₹${booking.totalAmount}
-
-📍 Salon: ${salon?.name}
-
-Thank you for choosing us ❤️`;
-
-    // ⚡ Send messages
-    if (salon?.phone) {
-      await sendWhatsAppMessage(salon.phone, salonMessage);
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ message: "Server config error" });
     }
 
-    // if (user?.phone) {
-    //   await sendWhatsAppMessage(user.phone, userMessage);
-    // }
+    // 🔐 Verify signature
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
 
-  } catch (err) {
-    console.error("WhatsApp send failed:", err.message);
+    const expected = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expected !== razorpay_signature) {
+      return res.status(400).json({ message: "Invalid signature" });
+    }
+
+    // 🔍 Find payment
+    const payment = await Payment.findOne({
+      razorpayOrderId: razorpay_order_id,
+    });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    // ⚠️ Prevent duplicate processing
+    if (payment.status === "PAID") {
+      return res.json({ message: "Already verified" });
+    }
+
+    // 💰 Update payment
+    payment.status = "PAID";
+    payment.razorpayPaymentId = razorpay_payment_id;
+    await payment.save();
+
+    // 📅 Get booking with nested populate (IMPORTANT FIX ✅)
+    const booking = await Booking.findById(payment.booking).populate([
+      "services",
+      "user",
+      "slot",
+      {
+        path: "salon",
+        populate: {
+          path: "owner",
+          select: "email",
+        },
+      },
+    ]);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    booking.status = "CONFIRMED";
+    await booking.save();
+
+    // 🪑 Block slot safely
+    await Slot.findOneAndUpdate(
+      { _id: booking.slot, status: { $ne: "BOOKED" } },
+      { status: "BOOKED" }
+    );
+
+    // 💼 Credit wallet
+    const wallet = await Wallet.findOneAndUpdate(
+      { salon: payment.salon },
+      { $inc: { balance: payment.salonEarning } },
+      { upsert: true, new: true }
+    );
+
+    // 📩 Notifications
+    try {
+      const salon = booking.salon;
+      const user = booking.user;
+
+      // ✅ FIXED: Get salon email from owner
+      const salonEmail = salon?.owner?.email;
+
+      const serviceNames = booking.services
+        .map((s) => s.name)
+        .join(", ");
+
+      console.log("Salon email:", salonEmail);
+      console.log("User email:", user?.email);
+
+      // 📧 SALON EMAIL
+      if (salonEmail) {
+        const salonHtml = `
+          <h2>New Booking Received 💇</h2>
+          <p><b>Customer:</b> ${user?.name || "Customer"}</p>
+          <p><b>Phone:</b> ${user?.phone || "N/A"}</p>
+          <p><b>Service:</b> ${serviceNames}</p>
+          <p><b>Date:</b> ${booking.slot?.date}</p>
+          <p><b>Time:</b> ${booking.slot?.startTime}</p>
+          <p><b>Amount:</b> ₹${booking.totalAmount}</p>
+        `;
+
+        await sendMail(salonEmail, "New Booking - BookMyCut", salonHtml);
+      }
+
+      // 📧 USER EMAIL
+      if (user?.email) {
+        const userHtml = `
+          <h2>Booking Confirmed ✅</h2>
+          <p>Hi ${user?.name || "User"},</p>
+          <p>Your appointment is booked.</p>
+          <p><b>Salon:</b> ${salon?.name}</p>
+          <p><b>Date:</b> ${booking.slot?.date}</p>
+          <p><b>Time:</b> ${booking.slot?.startTime}</p>
+          <p><b>Amount:</b> ₹${booking.totalAmount}</p>
+        `;
+
+        await sendMail(user.email, "Booking Confirmed", userHtml);
+      }
+    } catch (err) {
+      console.error("Notification failed:", err.message);
+    }
+
+    return res.json({ message: "Payment verified", wallet });
+
+  } catch (error) {
+    console.error("Verify Payment Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-
-  res.json({ message: "Payment verified", wallet });
 };

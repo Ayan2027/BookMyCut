@@ -1,14 +1,19 @@
 import axios from "axios";
 
-export const sendSMS = async (phone, message) => {
+export const sendSMS = async (numbers, message) => {
   try {
-    await axios.post(
+    const phoneNumbers = Array.isArray(numbers)
+      ? numbers.join(",")
+      : numbers;
+
+    const response = await axios.post(
       "https://www.fast2sms.com/dev/bulkV2",
       {
-        route: "q", // transactional route
+        route: "q", // promotional
         message: message,
         language: "english",
-        numbers: phone,
+        flash: 0,
+        numbers: phoneNumbers,
       },
       {
         headers: {
@@ -18,8 +23,8 @@ export const sendSMS = async (phone, message) => {
       }
     );
 
-    console.log("SMS sent successfully");
+    console.log("SMS sent ✅", response.data);
   } catch (error) {
-    console.error("SMS failed:", error.response?.data || error.message);
+    console.error("SMS failed ❌", error.response?.data || error.message);
   }
 };
