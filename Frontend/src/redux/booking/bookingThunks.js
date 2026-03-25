@@ -37,6 +37,11 @@ export const fetchMyBookings = createAsyncThunk("booking/fetchMy", async () => {
   console.log("userbookings ",res.data)
   return res.data;
 });
+export const fetchAllBookings = createAsyncThunk("booking/fetchMy", async () => {
+  const res = await api.get("admin/bookings/");
+  console.log("userbookings ",res.data)
+  return res.data;
+});
 
 // NEW: update booking status
 export const updateBookingStatus = createAsyncThunk(
