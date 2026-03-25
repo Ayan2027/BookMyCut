@@ -10,7 +10,7 @@ import paymentRoutes from "./modules/payments/payment.routes.js";
 import walletRoutes from "./modules/wallets/wallet.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
 import profileRoutes from "./modules/users/user.routes.js"
-import aiRoutes from "./modules/ai/ai.routes.js";
+import reviewRoutes from "./modules/reviews/review.routes.js";
 
 const app = express();
 
@@ -33,7 +33,9 @@ app.use("/payments", paymentRoutes);
 app.use("/wallet", walletRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/profile", profileRoutes);
-app.use("/ai", aiRoutes);
+app.use("/reviews", reviewRoutes);
+
+
 
 
 export default app;

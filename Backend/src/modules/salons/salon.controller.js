@@ -143,16 +143,23 @@ export const updateMySalon = async (req, res) => {
 
 export const getApprovedSalons = async (req, res) => {
   try {
+    // ✅ Added 'averageRating' and 'totalReviews' to the selection
     const salons = await Salon.find({ status: "APPROVED" }).select(
-      "name city description address rating image mapLink"
+      "name city description address image mapLink averageRating totalReviews"
     );
 
-    res.json(salons);
+    // ✅ Optional: Ensure defaults exist before sending to frontend
+    const sanitizedSalons = salons.map(salon => ({
+      ...salon._doc,
+      averageRating: salon.averageRating || 0,
+      totalReviews: salon.totalReviews || 0
+    }));
+
+    res.json(sanitizedSalons);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ message: "Data retrieval failed: " + err.message });
   }
 };
-
 
 /* Get slots of a salon (for customers) */
 export const getSlotsBySalon = async (req, res) => {

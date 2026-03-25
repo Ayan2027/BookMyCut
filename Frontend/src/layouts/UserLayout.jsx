@@ -87,7 +87,7 @@ export default function UserLayout() {
         {/* NAVIGATION */}
         <nav className="flex-1 px-4 space-y-2 mt-4">
           <SidebarLink
-            to="/app"
+            to="/app/salons"
             icon={<Compass size={18} />}
             label="Discover"
             end={true}
