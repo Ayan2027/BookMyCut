@@ -37,7 +37,7 @@ export const createBooking = async (req, res) => {
   const serviceDocs = await Service.find({ _id: { $in: services }, salon: salonId });
 
   const subtotal = serviceDocs.reduce((sum, s) => sum + s.price, 0);
-  const platformFee = Math.round(subtotal * 0.1); // 10% commission
+  const platformFee = Math.round(subtotal * 0.05); // 10% commission
   const totalAmount = subtotal + platformFee;
 
   const booking = await Booking.create({
