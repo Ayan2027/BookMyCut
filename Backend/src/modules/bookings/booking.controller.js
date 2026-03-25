@@ -3,26 +3,26 @@ import Slot from "../slots/slot.model.js";
 import Service from "../services/service.model.js";
 import Salon from "../salons/salon.model.js";
 
-/* Salon gets its own bookings */
 export const getSalonBookings = async (req, res) => {
   try {
-    console.log("in getsalonbookings")
-    // 1. Find the salon owned by the logged-in user
     const salon = await Salon.findOne({ owner: req.user._id });
-    if (!salon) return res.status(404).json({ message: "Salon profile not found" });
+    if (!salon) {
+      return res.status(404).json({ message: "Salon profile not found" });
+    }
     
-    // 2. Find all bookings linked to this salon
     const bookings = await Booking.find({ salon: salon._id })
-      .populate("user", "name phone email") // Populate customer details
+      .populate("user", "name phone email")
       .populate("services")
+      .populate("slot") // 🔥 ADD THIS
       .sort({ createdAt: -1 });
+
+    console.log("in getsalon bookings ",bookings)
 
     res.json(bookings);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch registry" });
   }
 };
-
 /* User creates booking */
 export const createBooking = async (req, res) => {
   console.log("BODY:", req.body);

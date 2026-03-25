@@ -23,13 +23,21 @@ export default function Account() {
   const menuItems = [
     { label: "My Bookings", icon: Calendar, path: "/app/bookings" },
     { label: "Saved Salons", icon: Heart, path: "/app/favorites" },
-    { label: "Payments & Wallet", icon: Wallet, path: "/app/payments" },
-    { label: "Notifications", icon: Bell, path: "/app/notifications" },
-    { label: "Saved Addresses", icon: MapPin, path: "/app/addresses" },
+    
     { label: "My Reviews", icon: Star, path: "/app/reviews" },
-    { label: "Help & Support", icon: HelpCircle, path: "/app/support" },
-    { label: "Settings", icon: Settings, path: "/app/settings" }
+    { label: "Help & Support", icon: HelpCircle, path: "/app/contact" },
+    
   ];
+  // const menuItems = [
+  //   { label: "My Bookings", icon: Calendar, path: "/app/bookings" },
+  //   { label: "Saved Salons", icon: Heart, path: "/app/favorites" },
+  //   { label: "Payments & Wallet", icon: Wallet, path: "/app/payments" },
+  //   { label: "Notifications", icon: Bell, path: "/app/notifications" },
+  //   { label: "Saved Addresses", icon: MapPin, path: "/app/addresses" },
+  //   { label: "My Reviews", icon: Star, path: "/app/reviews" },
+  //   { label: "Help & Support", icon: HelpCircle, path: "/app/contact" },
+  //   { label: "Settings", icon: Settings, path: "/app/settings" }
+  // ];
 
   const handleLogout = () => {
     dispatch(logout());
