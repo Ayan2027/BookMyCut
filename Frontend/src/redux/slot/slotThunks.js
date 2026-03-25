@@ -5,6 +5,7 @@ export const fetchMySlots = createAsyncThunk(
   "slot/fetchMy",
   async () => {
     const res = await slotService.getMy();
+    console.log("slots ",res.data)
     return res.data;
   }
 );

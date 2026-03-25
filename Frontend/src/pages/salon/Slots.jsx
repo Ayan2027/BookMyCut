@@ -118,29 +118,36 @@ export default function Slots() {
 }
 
 function SlotCard({ slot, onDelete }) {
+  const statusStyles = {
+    AVAILABLE: "border-green-500/40 bg-green-500/5",
+    BOOKED: "border-red-500/40 bg-red-500/5 opacity-60",
+    BLOCKED: "border-yellow-500/40 bg-yellow-500/5 opacity-60",
+  };
+
   return (
-    <div className="group relative bg-[#0a0a0a] border border-white/5 rounded-2xl p-5 hover:border-sky-500/50 transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-0 right-0 w-12 h-12 bg-sky-500/5 blur-xl group-hover:bg-sky-500/20 transition-all" />
-      
+    <div
+      className={`group relative border rounded-2xl p-5 transition-all duration-300 
+      ${statusStyles[slot.status] || "border-white/5 bg-[#0a0a0a]"}`}
+    >
       <div className="flex flex-col items-center gap-1">
-        <Clock size={14} className="text-zinc-800 group-hover:text-sky-400 transition-colors mb-2" />
-        <p className="text-xl font-bold tracking-tight text-zinc-200">
-          {slot.startTime}
-        </p>
-        <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-tighter">
-          thru {slot.endTime}
-        </p>
+        <p className="text-xl font-bold">{slot.startTime}</p>
+        <p className="text-[10px] uppercase">thru {slot.endTime}</p>
+
+        {/* STATUS LABEL */}
+        <span className="text-[10px] mt-1 font-mono tracking-widest text-zinc-400">
+          {slot.status}
+        </span>
       </div>
 
-      <button
-        onClick={onDelete}
-        className="absolute top-2 right-2 p-1 text-zinc-900 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0"
-      >
-        <Trash2 size={14} />
-      </button>
-
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-sky-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500" />
+      {/* Delete only if not booked */}
+      {slot.status !== "BOOKED" && (
+        <button
+          onClick={onDelete}
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   );
 }
