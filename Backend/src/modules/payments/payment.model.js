@@ -12,6 +12,9 @@ const paymentSchema = new mongoose.Schema({
   platformFee: Number,
   salonEarning: Number,
 
+  refundAmount: { type: Number, default: 0 },
+  refundId: String,
+  
   status: String
 }, { timestamps: true });
 

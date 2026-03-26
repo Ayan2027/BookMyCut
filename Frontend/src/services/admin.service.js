@@ -5,7 +5,6 @@ export const adminService = {
   getPendingSalons: (page = 1, limit = 10) =>
     api.get(`/admin/salons?status=PENDING&page=${page}&limit=${limit}`),
 
-  // NEW: fetch salons by any status
   getSalonsByStatus: (status) =>
     api.get(`/admin/salons?status=${status}`),
 
@@ -21,4 +20,11 @@ export const adminService = {
 
   suspendSalon: (salonId) =>
     api.post(`/admin/salons/${salonId}/suspend`),
+
+  // ✅ FIXED
+  getPayoutsByDate: (date) =>
+    api.get(`/admin/payouts?date=${date}`),
+
+  markPayout: (data) =>
+    api.post("/admin/payouts/mark", data),
 };

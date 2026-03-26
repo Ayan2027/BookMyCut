@@ -11,7 +11,7 @@ import walletRoutes from "./modules/wallets/wallet.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
 import profileRoutes from "./modules/users/user.routes.js"
 import reviewRoutes from "./modules/reviews/review.routes.js";
-
+import payoutRoutes from "./modules/payouts/payout.routes.js"
 const app = express();
 
 app.use(cors());
@@ -38,8 +38,7 @@ app.use("/wallet", walletRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/profile", profileRoutes);
 app.use("/reviews", reviewRoutes);
-
-
+app.use("/admin/payouts",payoutRoutes)
 
 
 export default app;

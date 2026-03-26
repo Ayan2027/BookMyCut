@@ -7,6 +7,8 @@ import {
   suspendSalon,
   fetchAllBookings,
   adminUpdateBookingStatus,
+  fetchPayouts,
+  payoutAction,
 } from "./adminThunks";
 
 const initialState = {
@@ -15,11 +17,24 @@ const initialState = {
   salonsCount: 0,
   bookingsCount: 0,
   paymentsCount: 0,
+
   loading: false,
   error: null,
+
   bookings: [],
   bookingLoading: false,
   bookingError: null,
+
+  finance: {
+    totalAmount: 0,
+    totalRevenue: 0,
+    pendingPayouts: 0,
+    paidToSalons: 0,
+  },
+
+  payouts: [],
+  payoutLoading: false,
+  payoutError: null,
 };
 
 const adminSlice = createSlice({
@@ -32,23 +47,29 @@ const adminSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+      /* ===== OVERVIEW ===== */
       .addCase(fetchAdminOverview.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchAdminOverview.fulfilled, (state, action) => {
         state.loading = false;
+
         state.pendingList = action.payload.pendingList || [];
         state.pendingCount = action.payload.pendingCount ?? 0;
         state.salonsCount = action.payload.salonsCount ?? 0;
         state.bookingsCount = action.payload.bookingsCount ?? 0;
         state.paymentsCount = action.payload.paymentsCount ?? 0;
+
+        state.finance =
+          action.payload.finance || initialState.finance;
       })
       .addCase(fetchAdminOverview.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || action.error?.message;
       })
 
-      /* Approve / reject / suspend: remove from pendingList if successful */
+      /* ===== SALON ACTIONS ===== */
       .addCase(approveSalon.fulfilled, (state, action) => {
         const id = action.payload?.salon?._id || action.payload?._id;
         state.pendingList = state.pendingList.filter((s) => s._id !== id);
@@ -64,7 +85,8 @@ const adminSlice = createSlice({
         state.pendingList = state.pendingList.filter((s) => s._id !== id);
         state.pendingCount = Math.max(0, state.pendingCount - 1);
       })
-      // Fetch All Bookings
+
+      /* ===== BOOKINGS ===== */
       .addCase(fetchAllBookings.pending, (state) => {
         state.bookingLoading = true;
       })
@@ -77,14 +99,37 @@ const adminSlice = createSlice({
         state.bookingError = action.payload;
       })
 
-      // Update Status (Optimistic Update or Refresh)
       .addCase(adminUpdateBookingStatus.fulfilled, (state, action) => {
         const index = state.bookings.findIndex(
-          (b) => b._id === action.payload._id,
+          (b) => b._id === action.payload._id
         );
         if (index !== -1) {
           state.bookings[index] = action.payload;
         }
+      })
+
+      /* ===== PAYOUTS ===== */
+      .addCase(fetchPayouts.pending, (state) => {
+        state.payoutLoading = true;
+      })
+      .addCase(fetchPayouts.fulfilled, (state, action) => {
+        state.payoutLoading = false;
+        state.payouts = action.payload;
+      })
+      .addCase(fetchPayouts.rejected, (state, action) => {
+        state.payoutLoading = false;
+        state.payoutError = action.payload;
+      })
+
+      .addCase(payoutAction.pending, (state) => {
+        state.payoutLoading = true;
+      })
+      .addCase(payoutAction.fulfilled, (state) => {
+        state.payoutLoading = false;
+      })
+      .addCase(payoutAction.rejected, (state, action) => {
+        state.payoutLoading = false;
+        state.payoutError = action.payload;
       });
   },
 });
