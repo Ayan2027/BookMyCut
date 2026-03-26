@@ -106,12 +106,12 @@ export const verifyPayment = async (req, res) => {
       { status: "BOOKED" }
     );
 
-    // 💼 Credit wallet
-    const wallet = await Wallet.findOneAndUpdate(
-      { salon: payment.salon },
-      { $inc: { balance: payment.salonEarning } },
-      { upsert: true, new: true }
-    );
+    // // 💼 Credit wallet
+    // const wallet = await Wallet.findOneAndUpdate(
+    //   { salon: payment.salon },
+    //   { $inc: { balance: payment.salonEarning } },
+    //   { upsert: true, new: true }
+    // );
 
     // 📩 Notifications
     try {

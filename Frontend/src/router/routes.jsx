@@ -46,7 +46,7 @@ import AdminDashboard from "../pages/admin/Dashboard";
 import AdminSalons from "../pages/admin/Salons";
 import AdminPayments from "../pages/admin/Payments";
 import AdminBookings from "../pages/admin/Bookings";
-
+import PayoutsPage from "../pages/admin/Payouts";
 // ai
 import Hairstyle from "../pages/ai/Hairstyle";
 
@@ -113,6 +113,7 @@ export default function AppRoutes() {
             <Route path="/admin/salons" element={<AdminSalons />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/payouts" element={<PayoutsPage />} />
           </Route>
         </Route>
       </Route>

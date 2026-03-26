@@ -143,3 +143,85 @@ export const adminUpdateBookingStatus = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getAdminOverview = async (req, res) => {
+  try {
+    // --- BASIC COUNTS (already you have, keep them) ---
+    const pendingSalons = await Salon.find({ status: "PENDING" });
+    const pendingCount = pendingSalons.length;
+
+    const salonsCount = await Salon.countDocuments();
+    const bookingsCount = await Booking.countDocuments();
+    const paymentsCount = await Payment.countDocuments();
+
+    // 🔥 --- FINANCIAL AGGREGATION ---
+
+    const payments = await Payment.aggregate([
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "booking",
+          foreignField: "_id",
+          as: "bookingData",
+        },
+      },
+      { $unwind: "$bookingData" },
+
+      {
+        $group: {
+          _id: null,
+
+          // 💰 total collected
+          totalAmount: { $sum: "$amount" },
+
+          // 💸 your revenue
+          totalRevenue: { $sum: "$platformFee" },
+
+          // ⏳ pending payouts
+          pendingPayouts: {
+            $sum: {
+              $cond: [
+                { $ne: ["$bookingData.status", "COMPLETED"] },
+                "$salonEarning",
+                0,
+              ],
+            },
+          },
+
+          // ✅ paid to salons
+          paidToSalons: {
+            $sum: {
+              $cond: [
+                { $eq: ["$bookingData.status", "COMPLETED"] },
+                "$salonEarning",
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const finance = payments[0] || {
+      totalAmount: 0,
+      totalRevenue: 0,
+      pendingPayouts: 0,
+      paidToSalons: 0,
+    };
+
+    res.json({
+      pendingList: pendingSalons,
+      pendingCount,
+      salonsCount,
+      bookingsCount,
+      paymentsCount,
+
+      // 🔥 NEW DATA
+      finance,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Admin overview failed" });
+  }
+};

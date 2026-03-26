@@ -3,33 +3,22 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { adminService } from "../../services/admin.service";
 import api from "../../services/api";
 
-/* Fetch small overview: pending salons, total salons, bookings count, payments count */
+/* ================= OVERVIEW ================= */
 export const fetchAdminOverview = createAsyncThunk(
-  "admin/fetchOverview",
+  "admin/overview",
   async (_, { rejectWithValue }) => {
     try {
-      // parallel calls
-      const [pendingRes, salonsRes, bookingsRes, paymentsRes] = await Promise.all([
-        adminService.getPendingSalons(1, 5), // fetch first 5 pending for preview
-        adminService.getAllSalons(),
-        adminService.getBookings(),
-        adminService.getPayments(),
-      ]);
-
-      return {
-        pendingList: pendingRes.data || [],
-        pendingCount: pendingRes.data?.length ?? 0,
-        salonsCount: Array.isArray(salonsRes.data) ? salonsRes.data.length : 0,
-        bookingsCount: Array.isArray(bookingsRes.data) ? bookingsRes.data.length : 0,
-        paymentsCount: Array.isArray(paymentsRes.data) ? paymentsRes.data.length : 0,
-      };
+      const res = await api.get("/admin/overview");
+      return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data || { message: err.message });
+      return rejectWithValue(
+        err.response?.data || { message: err.message }
+      );
     }
   }
 );
 
-/* Approve/Reject/Suspend actions (return updated salon or id) */
+/* ================= SALON ACTIONS ================= */
 export const approveSalon = createAsyncThunk(
   "admin/approveSalon",
   async (salonId, { rejectWithValue }) => {
@@ -66,22 +55,21 @@ export const suspendSalon = createAsyncThunk(
   }
 );
 
-
-// Fetch all bookings (Admin only)
+/* ================= BOOKINGS ================= */
 export const fetchAllBookings = createAsyncThunk(
   "admin/fetchAllBookings",
   async (_, { rejectWithValue }) => {
     try {
       const res = await adminService.getBookings();
-      console.log("res ",res)
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to load registry");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to load bookings"
+      );
     }
   }
 );
 
-// Update booking status
 export const adminUpdateBookingStatus = createAsyncThunk(
   "admin/updateBookingStatus",
   async ({ id, status }, { rejectWithValue }) => {
@@ -89,7 +77,42 @@ export const adminUpdateBookingStatus = createAsyncThunk(
       const res = await api.put(`/admin/bookings/${id}`, { status });
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Protocol override failed");
+      return rejectWithValue(
+        err.response?.data?.message || "Update failed"
+      );
+    }
+  }
+);
+
+/* ================= PAYOUTS ================= */
+export const fetchPayouts = createAsyncThunk(
+  "admin/fetchPayouts",
+  async (date, { rejectWithValue }) => {
+    try {
+      const res = await adminService.getPayoutsByDate(date);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: err.message }
+      );
+    }
+  }
+);
+
+export const payoutAction = createAsyncThunk(
+  "admin/payoutAction",
+  async (payload, { dispatch, rejectWithValue }) => {
+    try {
+      const res = await adminService.markPayout(payload);
+
+      // ✅ refresh payouts after action
+      dispatch(fetchPayouts(payload.date));
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data || { message: err.message }
+      );
     }
   }
 );
