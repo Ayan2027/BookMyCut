@@ -102,6 +102,7 @@ export const updateBookingStatus = async (req, res) => {
         },
       });
 
+      booking.completedAt = new Date();
       console.log(
         `SETTLEMENT_LOG: ₹${netPayout} transferred to Salon balance.`,
       );

@@ -9,6 +9,7 @@ export const fetchAdminOverview = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get("/admin/overview");
+      console.log("adminoverview ",res.data)
       return res.data;
     } catch (err) {
       return rejectWithValue(

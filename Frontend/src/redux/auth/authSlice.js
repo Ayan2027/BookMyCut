@@ -6,6 +6,7 @@ import {
   requestOtp,
   updateProfile,
   fetchProfile,
+  fetchUserDashboard
 } from "./authThunks";
 import { storage } from "../../utils/storage";
 
@@ -15,6 +16,12 @@ const initialState = {
   role: storage.getRole() || null,
   loading: false,
   error: null,
+  dashboard: {
+    totalSpent: 0,
+    totalRefund: 0,
+    netSpent: 0,
+    bookings: [],
+  },
 };
 
 const authSlice = createSlice({
@@ -100,6 +107,18 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state) => {
         state.loading = false;
+      })
+      //fetchUserDashBoard
+      .addCase(fetchUserDashboard.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUserDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dashboard = action.payload;
+      })
+      .addCase(fetchUserDashboard.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

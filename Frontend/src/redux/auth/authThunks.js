@@ -93,3 +93,11 @@ export const fetchProfile = createAsyncThunk(
     }
   }
 );
+
+export const fetchUserDashboard = createAsyncThunk(
+  "user/dashboard",
+  async () => {
+    const res = await authService.getUserDashboard();
+    return res.data;
+  }
+);

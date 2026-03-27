@@ -72,29 +72,36 @@ export default function AdminDashboard() {
   ];
   const financialStats = [
     {
-      label: "Revenue",
+      label: "Platform Revenue",
       value: `₹${finance.totalRevenue}`,
       icon: TrendingUp,
       color: "text-green-500",
       glow: "shadow-green-500/20",
     },
     {
-      label: "Collected",
+      label: "Total Collected",
       value: `₹${finance.totalAmount}`,
       icon: CreditCard,
       color: "text-blue-500",
       glow: "shadow-blue-500/20",
     },
     {
-      label: "Pending_Payouts",
+      label: "Salon Earnings",
+      value: `₹${finance.earnedBySalons}`, // ✅ NEW FIELD
+      icon: Activity,
+      color: "text-violet-500",
+      glow: "shadow-violet-500/20",
+    },
+    {
+      label: "Pending Payouts",
       value: `₹${finance.pendingPayouts}`,
       icon: Clock,
       color: "text-yellow-500",
       glow: "shadow-yellow-500/20",
     },
     {
-      label: "Earned by Salons",
-      value: `₹${finance.paidToSalons}`,
+      label: "Paid to Salons",
+      value: `₹${finance.paidToSalons}`, // ✅ FIXED LABEL
       icon: CheckCircle,
       color: "text-emerald-500",
       glow: "shadow-emerald-500/20",
