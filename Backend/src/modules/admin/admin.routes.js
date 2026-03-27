@@ -9,7 +9,8 @@ import {
   allPayments,
   payoutSalon,
   adminUpdateBookingStatus,
-  getAdminOverview
+  getAdminOverview,
+  getAdminDailyEarnings
 } from "./admin.controller.js";
 
 const router = express.Router();
@@ -29,5 +30,7 @@ router.post("/payout/:salonId", payoutSalon);
 router.put("/bookings/:id", adminUpdateBookingStatus);
 
 router.get("/overview", getAdminOverview);
+router.get("/daily-earnings", getAdminDailyEarnings);
+
 
 export default router;

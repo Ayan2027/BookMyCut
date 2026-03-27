@@ -5,7 +5,7 @@ import { fetchMySalon } from "../redux/salon/salonThunks";
 import { fetchMyServices } from "../redux/service/serviceThunks";
 import { fetchMySlots } from "../redux/slot/slotThunks";
 import { logout } from "../redux/auth/authThunks";
-import { LogOut, Scissors, Globe, HelpCircle } from "lucide-react";
+import { LogOut, Scissors, HelpCircle, Wallet } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function SalonLayout() {
@@ -30,10 +30,11 @@ export default function SalonLayout() {
 
   return (
     <div className="min-h-screen bg-[#030303] text-zinc-100 flex flex-col selection:bg-violet-500/30">
+      
       {/* GLOBAL SALON HEADER */}
       <header className="h-20 border-b border-white/5 bg-[#050505]/50 backdrop-blur-xl flex items-center justify-between px-6 lg:px-12 sticky top-0 z-50">
         
-        {/* LEFT: BRAND & IDENTITY */}
+        {/* LEFT: BRAND */}
         <div className="flex items-center gap-6">
           <NavLink to="/salon/dashboard" className="flex items-center gap-4 group">
             <div className="h-10 w-10 bg-violet-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(124,58,237,0.3)] group-hover:scale-105 transition-transform">
@@ -50,10 +51,27 @@ export default function SalonLayout() {
           </NavLink>
         </div>
 
-        {/* RIGHT: NAVIGATION & SYSTEM ACTIONS */}
+        {/* RIGHT: NAVIGATION */}
         <div className="flex items-center gap-3">
-          
-          {/* NEW: SUPPORT UPLINK (Contact Us) */}
+
+          {/* 💰 FINANCE / EARNINGS */}
+          <NavLink 
+            to="/salon/finance" 
+            className={({ isActive }) => `
+              flex items-center gap-2 px-4 py-2.5 rounded-2xl border transition-all duration-300
+              ${isActive 
+                ? 'bg-violet-500/10 border-violet-500/50 text-violet-400' 
+                : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/30 hover:text-white'
+              }
+            `}
+          >
+            <Wallet size={16} />
+            <span className="hidden lg:block text-[10px] font-mono uppercase tracking-widest">
+              Earnings
+            </span>
+          </NavLink>
+
+          {/* SUPPORT */}
           <NavLink 
             to="/contact" 
             className={({ isActive }) => `
@@ -72,7 +90,7 @@ export default function SalonLayout() {
 
           <div className="w-px h-6 bg-white/10 mx-2 hidden md:block" />
 
-          {/* LOGOUT BUTTON */}
+          {/* LOGOUT */}
           <button 
             onClick={handleLogout}
             className="group flex items-center gap-3 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/50 px-5 py-2.5 rounded-2xl transition-all duration-300"
@@ -85,9 +103,8 @@ export default function SalonLayout() {
         </div>
       </header>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN */}
       <main className="flex-1 relative">
-        {/* Ambient background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-violet-600/5 blur-[120px] pointer-events-none" />
         
         <div className="relative z-10">
@@ -95,7 +112,7 @@ export default function SalonLayout() {
         </div>
       </main>
 
-      {/* MINIMALIST SYSTEM FOOTER */}
+      {/* FOOTER */}
       <footer className="mt-auto border-t border-white/5 py-8 px-6 lg:px-12 bg-black/20 backdrop-blur-md">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 opacity-30 hover:opacity-100 transition-opacity duration-500">
           <div className="flex items-center gap-3">

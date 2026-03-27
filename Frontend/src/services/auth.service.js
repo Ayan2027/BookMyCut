@@ -7,5 +7,5 @@ export const authService = {
   me: () => api.get("/auth/me"),
   updateProfile: (data) => api.put("/profile", data),
   getProfile: () => api.get("/profile"),
-
+  getUserDashboard: () => api.get("/profile/dashboard"),
 };

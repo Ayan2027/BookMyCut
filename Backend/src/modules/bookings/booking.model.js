@@ -13,6 +13,8 @@ const bookingSchema = new mongoose.Schema({
   bookingType: { type: String, enum: ["IN_SALON", "HOME_SERVICE"] },
   address: String,
 
+  completedAt: Date,
+
   status: { type: String, default: "PENDING" },
   review: { type: mongoose.Schema.Types.ObjectId, ref: "Review" }, // Add this
   rating: { type: Number } // Optional: Store the number here for fast UI access

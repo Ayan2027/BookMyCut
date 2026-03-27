@@ -2,6 +2,7 @@ import Salon from "../salons/salon.model.js";
 import Booking from "../bookings/booking.model.js";
 import Payment from "../payments/payment.model.js";
 import Wallet from "../wallets/wallet.model.js";
+import Payout from "../payouts/payout.model.js";
 
 /* Get salons (all or filtered by status) */
 export const getSalons = async (req, res) => {
@@ -26,7 +27,7 @@ export const approveSalon = async (req, res) => {
     const salon = await Salon.findByIdAndUpdate(
       req.params.salonId,
       { status: "APPROVED", approvedAt: new Date() },
-      { new: true }
+      { new: true },
     );
     res.json(salon);
   } catch (err) {
@@ -40,7 +41,7 @@ export const rejectSalon = async (req, res) => {
     const salon = await Salon.findByIdAndUpdate(
       req.params.salonId,
       { status: "REJECTED" },
-      { new: true }
+      { new: true },
     );
     res.json(salon);
   } catch (err) {
@@ -54,7 +55,7 @@ export const suspendSalon = async (req, res) => {
     const salon = await Salon.findByIdAndUpdate(
       req.params.salonId,
       { status: "SUSPENDED" },
-      { new: true }
+      { new: true },
     );
     res.json(salon);
   } catch (err) {
@@ -76,24 +77,28 @@ export const getAllBookings = async (req, res) => {
       .populate("services", "name price");
 
     // 2. Fetch payment details for these specific bookings
-    const bookingIds = bookings.map(b => b._id);
+    const bookingIds = bookings.map((b) => b._id);
     const payments = await Payment.find({ booking: { $in: bookingIds } });
 
     // 3. Merge the data manually (since Booking doesn't have a paymentId field)
-    const results = bookings.map(b => {
+    const results = bookings.map((b) => {
       // Find the payment object that belongs to this booking ID
-      const payment = payments.find(p => p.booking.toString() === b._id.toString());
-      
+      const payment = payments.find(
+        (p) => p.booking.toString() === b._id.toString(),
+      );
+
       return {
         ...b._doc,
-        transaction: payment || null // This adds the 'transaction' object you need
+        transaction: payment || null, // This adds the 'transaction' object you need
       };
     });
 
     res.json(results);
   } catch (err) {
     console.error("ADMIN_FETCH_ERROR:", err);
-    res.status(500).json({ message: "System failure during registry compilation." });
+    res
+      .status(500)
+      .json({ message: "System failure during registry compilation." });
   }
 };
 
@@ -125,18 +130,16 @@ export const payoutSalon = async (req, res) => {
   }
 };
 
-
 /* Admin updates booking status */
 export const adminUpdateBookingStatus = async (req, res) => {
   try {
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       { status: req.body.status },
-      { new: true }
+      { new: true },
     );
 
-    if (!booking)
-      return res.status(404).json({ message: "Booking not found" });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     res.json(booking);
   } catch (err) {
@@ -146,7 +149,7 @@ export const adminUpdateBookingStatus = async (req, res) => {
 
 export const getAdminOverview = async (req, res) => {
   try {
-    // --- BASIC COUNTS (already you have, keep them) ---
+    // --- BASIC COUNTS ---
     const pendingSalons = await Salon.find({ status: "PENDING" });
     const pendingCount = pendingSalons.length;
 
@@ -154,60 +157,65 @@ export const getAdminOverview = async (req, res) => {
     const bookingsCount = await Booking.countDocuments();
     const paymentsCount = await Payment.countDocuments();
 
-    // 🔥 --- FINANCIAL AGGREGATION ---
-
-    const payments = await Payment.aggregate([
-      {
-        $lookup: {
-          from: "bookings",
-          localField: "booking",
-          foreignField: "_id",
-          as: "bookingData",
-        },
-      },
-      { $unwind: "$bookingData" },
-
+    // 💰 Total collected + platform revenue
+    const paymentStats = await Payment.aggregate([
       {
         $group: {
           _id: null,
-
-          // 💰 total collected
           totalAmount: { $sum: "$amount" },
-
-          // 💸 your revenue
           totalRevenue: { $sum: "$platformFee" },
-
-          // ⏳ pending payouts
-          pendingPayouts: {
-            $sum: {
-              $cond: [
-                { $ne: ["$bookingData.status", "COMPLETED"] },
-                "$salonEarning",
-                0,
-              ],
-            },
-          },
-
-          // ✅ paid to salons
-          paidToSalons: {
-            $sum: {
-              $cond: [
-                { $eq: ["$bookingData.status", "COMPLETED"] },
-                "$salonEarning",
-                0,
-              ],
-            },
-          },
         },
       },
     ]);
 
-    const finance = payments[0] || {
-      totalAmount: 0,
-      totalRevenue: 0,
-      pendingPayouts: 0,
-      paidToSalons: 0,
+    // 🏦 Pending payouts (REAL money you owe)
+    const walletStats = await Salon.aggregate([
+      {
+        $group: {
+          _id: null,
+          pendingPayouts: { $sum: "$balance" },
+        },
+      },
+    ]);
+
+    // 💸 Money already paid to salons
+    const payoutStats = await Payout.aggregate([
+      {
+        $group: {
+          _id: null,
+          paidToSalons: { $sum: "$paidAmount" },
+        },
+      },
+    ]);
+
+    // 💰 Total earned by salons
+    const earningsStats = await Salon.aggregate([
+      {
+        $group: {
+          _id: null,
+          earnedBySalons: { $sum: "$lifetimeEarnings" },
+        },
+      },
+    ]);
+
+    // --- FINAL FINANCE OBJECT ---
+    const finance = {
+      totalAmount: paymentStats[0]?.totalAmount || 0,
+      totalRevenue: paymentStats[0]?.totalRevenue || 0,
+
+      earnedBySalons: earningsStats[0]?.earnedBySalons || 0,
+
+      pendingPayouts: walletStats[0]?.pendingPayouts || 0,
+      paidToSalons: payoutStats[0]?.paidToSalons || 0,
     };
+
+    // --- OPTIONAL SAFETY CHECK (recommended) ---
+    if (
+      finance.earnedBySalons !==
+      finance.pendingPayouts + finance.paidToSalons
+    ) {
+      console.warn("⚠ Finance mismatch detected");
+    }
 
     res.json({
       pendingList: pendingSalons,
@@ -215,13 +223,63 @@ export const getAdminOverview = async (req, res) => {
       salonsCount,
       bookingsCount,
       paymentsCount,
-
-      // 🔥 NEW DATA
       finance,
     });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Admin overview failed" });
+  }
+};
+
+export const getAdminDailyEarnings = async (req, res) => {
+  try {
+    const data = await Payment.aggregate([
+      {
+        $match: {
+          status: { $in: ["PAID", "PARTIAL_REFUND"] }, // ✅ include partial refunds
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+            day: { $dayOfMonth: "$createdAt" },
+          },
+
+          // 💰 Your revenue
+          revenue: { $sum: "$platformFee" },
+
+          // 💳 Total collected
+          totalCollected: { $sum: "$amount" },
+
+          // 🔁 Refund tracking (important)
+          totalRefund: { $sum: "$refundAmount" },
+        },
+      },
+      {
+        $addFields: {
+          date: {
+            $dateToString: {
+              format: "%d-%m-%Y",
+              date: {
+                $dateFromParts: {
+                  year: "$_id.year",
+                  month: "$_id.month",
+                  day: "$_id.day",
+                },
+              },
+              timezone: "Asia/Kolkata",
+            },
+          },
+        },
+      },
+      { $sort: { "_id.year": -1, "_id.month": -1, "_id.day": -1 } },
+    ]);
+
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Daily earnings failed" });
   }
 };
