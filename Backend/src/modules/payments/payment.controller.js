@@ -79,7 +79,7 @@ export const verifyPayment = async (req, res) => {
     payment.razorpayPaymentId = razorpay_payment_id;
     await payment.save();
 
-    // 📅 Get booking with nested populate (IMPORTANT FIX ✅)
+    // 📅 Get booking
     const booking = await Booking.findById(payment.booking).populate([
       "services",
       "user",
@@ -100,26 +100,19 @@ export const verifyPayment = async (req, res) => {
     booking.status = "CONFIRMED";
     await booking.save();
 
-    // 🪑 Block slot safely
+    // 🪑 Block slot
     await Slot.findOneAndUpdate(
       { _id: booking.slot, status: { $ne: "BOOKED" } },
       { status: "BOOKED" }
     );
 
-    // // 💼 Credit wallet
-    // const wallet = await Wallet.findOneAndUpdate(
-    //   { salon: payment.salon },
-    //   { $inc: { balance: payment.salonEarning } },
-    //   { upsert: true, new: true }
-    // );
-
-    // 📩 Notifications
+    // 📩 Notifications (NON-BLOCKING 🚀)
     try {
       const salon = booking.salon;
       const user = booking.user;
 
-      // ✅ FIXED: Get salon email from owner
       const salonEmail = salon?.owner?.email;
+      const adminEmail = process.env.ADMIN_EMAIL;
 
       const serviceNames = booking.services
         .map((s) => s.name)
@@ -127,41 +120,60 @@ export const verifyPayment = async (req, res) => {
 
       console.log("Salon email:", salonEmail);
       console.log("User email:", user?.email);
+      console.log("Admin email:", adminEmail);
 
-      // 📧 SALON EMAIL
-      if (salonEmail) {
-        const salonHtml = `
-          <h2>New Booking Received 💇</h2>
-          <p><b>Customer:</b> ${user?.name || "Customer"}</p>
-          <p><b>Phone:</b> ${user?.phone || "N/A"}</p>
-          <p><b>Service:</b> ${serviceNames}</p>
-          <p><b>Date:</b> ${booking.slot?.date}</p>
-          <p><b>Time:</b> ${booking.slot?.startTime}</p>
-          <p><b>Amount:</b> ₹${booking.totalAmount}</p>
-        `;
+      // 📧 Prepare emails
+      const salonHtml = `
+        <h2>New Booking Received 💇</h2>
+        <p><b>Customer:</b> ${user?.name || "Customer"}</p>
+        <p><b>Phone:</b> ${user?.phone || "N/A"}</p>
+        <p><b>Service:</b> ${serviceNames}</p>
+        <p><b>Date:</b> ${booking.slot?.date}</p>
+        <p><b>Time:</b> ${booking.slot?.startTime}</p>
+        <p><b>Amount:</b> ₹${booking.totalAmount}</p>
+      `;
 
-        await sendMail(salonEmail, "New Booking - BookMyCut", salonHtml);
-      }
+      const userHtml = `
+        <h2>Booking Confirmed ✅</h2>
+        <p>Hi ${user?.name || "User"},</p>
+        <p>Your appointment is booked.</p>
+        <p><b>Salon:</b> ${salon?.name}</p>
+        <p><b>Date:</b> ${booking.slot?.date}</p>
+        <p><b>Time:</b> ${booking.slot?.startTime}</p>
+        <p><b>Amount:</b> ₹${booking.totalAmount}</p>
+        <p><b>Location:</b> ${salon?.mapLink}</p>
+      `;
 
-      // 📧 USER EMAIL
-      if (user?.email) {
-        const userHtml = `
-          <h2>Booking Confirmed ✅</h2>
-          <p>Hi ${user?.name || "User"},</p>
-          <p>Your appointment is booked.</p>
-          <p><b>Salon:</b> ${salon?.name}</p>
-          <p><b>Date:</b> ${booking.slot?.date}</p>
-          <p><b>Time:</b> ${booking.slot?.startTime}</p>
-          <p><b>Amount:</b> ₹${booking.totalAmount}</p>
-        `;
+      const adminHtml = `
+        <h2>🚨 New Booking Alert</h2>
+        <p><b>User:</b> ${user?.name}</p>
+        <p><b>User Email:</b> ${user?.email}</p>
+        <p><b>Salon:</b> ${salon?.name}</p>
+        <p><b>Salon Email:</b> ${salonEmail}</p>
+        <p><b>Salon phone:</b> ${salon?.phone}</p>
+        <p><b>Service:</b> ${serviceNames}</p>
+        <p><b>Date:</b> ${booking.slot?.date}</p>
+        <p><b>Time:</b> ${booking.slot?.startTime}</p>
+        <p><b>Total Amount:</b> ₹${booking.totalAmount}</p>
+        <p><b>Payment ID:</b> ${razorpay_payment_id}</p>
+      `;
 
-        await sendMail(user.email, "Booking Confirmed", userHtml);
-      }
+      // ⚡ PRO TIP: Send all emails in parallel (FAST 🚀)
+      await Promise.all([
+        salonEmail &&
+          sendMail(salonEmail, "New Booking - BookMyCut", salonHtml),
+
+        user?.email &&
+          sendMail(user.email, "Booking Confirmed", userHtml),
+
+        adminEmail &&
+          sendMail(adminEmail, "🚨 New Booking Alert", adminHtml),
+      ]);
     } catch (err) {
       console.error("Notification failed:", err.message);
     }
 
-    return res.json({ message: "Payment verified", wallet });
+    return res.json({ message: "Payment verified" });
 
   } catch (error) {
     console.error("Verify Payment Error:", error);
