@@ -2,6 +2,7 @@ import Booking from "./booking.model.js";
 import Slot from "../slots/slot.model.js";
 import Service from "../services/service.model.js";
 import Salon from "../salons/salon.model.js";
+import { sendMail } from "../../services/mail.service.js";
 
 import Payment from "../payments/payment.model.js";
 import { razorpay } from "../../config/razorpay.js";
@@ -18,8 +19,6 @@ export const getSalonBookings = async (req, res) => {
       .populate("services")
       .populate("slot") // 🔥 ADD THIS
       .sort({ createdAt: -1 });
-
-    
 
     res.json(bookings);
   } catch (err) {
@@ -129,17 +128,24 @@ export const cancelBooking = async (req, res) => {
     const { bookingId } = req.params;
     const { cancelledBy } = req.body; // USER or SALON
 
-    const booking = await Booking.findById(bookingId).populate("slot");
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
+    // 1. Added full populate to get email details
+    const booking = await Booking.findById(bookingId).populate([
+      "services",
+      "user",
+      "slot",
+      {
+        path: "salon",
+        populate: { path: "owner", select: "email" },
+      },
+    ]);
+
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     if (booking.status === "COMPLETED") {
       return res.status(400).json({ message: "Cannot cancel completed booking" });
     }
 
     const payment = await Payment.findOne({ booking: booking._id });
-
     if (payment.status === "REFUNDED") {
       return res.json({ message: "Already refunded" });
     }
@@ -148,22 +154,23 @@ export const cancelBooking = async (req, res) => {
     const slotTime = new Date(`${booking.slot.date}T${booking.slot.startTime}`);
     const now = new Date();
 
-    const diffHours = (slotTime - now) / (1000 * 60 * 60);
+    if (now > slotTime && cancelledBy === "USER") {
+      return res.status(400).json({ message: "Cannot cancel after slot time" });
+    }
 
+    const diffHours = (slotTime - now) / (1000 * 60 * 60);
     let refundPercentage = 0;
 
-    // 💥 Salon cancel = full refund
     if (cancelledBy === "SALON") {
       refundPercentage = 1;
     } else {
-      if (diffHours > 6) refundPercentage = 1;
-      else if (diffHours > 2) refundPercentage = 0.8;
-      else if (diffHours > 0) refundPercentage = 0.5;
+      if (diffHours > 6) refundPercentage = 0.8;
+      else if (diffHours > 2) refundPercentage = 0.6;
+      else if (diffHours > 0) refundPercentage = 0.4;
       else refundPercentage = 0;
     }
 
     const refundAmount = Math.floor(payment.amount * refundPercentage);
-
     let refundResponse = null;
 
     // 💰 Razorpay refund
@@ -171,9 +178,7 @@ export const cancelBooking = async (req, res) => {
       try {
         refundResponse = await razorpay.payments.refund(
           payment.razorpayPaymentId,
-          {
-            amount: refundAmount * 100,
-          }
+          { amount: refundAmount * 100 }
         );
       } catch (err) {
         console.error("Refund failed:", err);
@@ -184,29 +189,66 @@ export const cancelBooking = async (req, res) => {
     // 💾 Update DB
     payment.refundAmount = refundAmount;
     payment.refundId = refundResponse?.id || null;
-
-    if (refundAmount === payment.amount) {
-      payment.status = "REFUNDED";
-    } else if (refundAmount > 0) {
-      payment.status = "PARTIAL_REFUND";
-    }
-
+    payment.status = refundAmount === payment.amount ? "REFUNDED" : (refundAmount > 0 ? "PARTIAL_REFUND" : payment.status);
     await payment.save();
 
     booking.status = "CANCELLED";
     booking.cancelledBy = cancelledBy;
     await booking.save();
 
-    // 🔓 Free slot
-    await Slot.findByIdAndUpdate(booking.slot._id, {
-      status: "AVAILABLE",
-    });
+    await Slot.findByIdAndUpdate(booking.slot._id, { status: "AVAILABLE" });
 
-    res.json({
-      message: "Booking cancelled",
-      refundAmount,
-      refundPercentage,
-    });
+    // 📩 NOTIFICATIONS (NON-BLOCKING 🚀)
+    try {
+      const salon = booking.salon;
+      const user = booking.user;
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const serviceNames = booking.services.map((s) => s.name).join(", ");
+      
+      const emailStyle = `style="font-family: sans-serif; padding: 20px; border: 2px solid #ff4d4d; border-radius: 10px;"`;
+      const headerStyle = `style="color: #d32f2f; font-size: 24px; text-transform: uppercase; font-weight: 900;"`;
+      const moneyBox = `style="background: #fff5f5; padding: 15px; border-left: 5px solid #d32f2f; margin: 15px 0;"`;
+
+      // 📧 USER EMAIL
+      const userHtml = `
+        <div ${emailStyle}>
+          <h2 ${headerStyle}>Booking Cancelled ❌</h2>
+          <p>Hi <b>${user?.name}</b>, your booking at <b>${salon?.name}</b> has been terminated.</p>
+          <div ${moneyBox}>
+            <p style="margin: 0; color: #d32f2f;"><b>REFUND DETAILS:</b></p>
+            <p>Refund Amount: <b>₹${refundAmount}</b> (${refundPercentage * 100}% of total)</p>
+            <p style="font-size: 12px; color: #666;">Note: It may take 5-7 business days to reflect in your account.</p>
+          </div>
+          <p><b>Original Booking ID:</b> ${booking._id}</p>
+          <p><b>Service:</b> ${serviceNames}</p>
+        </div>
+      `;
+
+      // 📧 SALON EMAIL
+      const salonHtml = `
+        <div ${emailStyle}>
+          <h2 ${headerStyle}>Appointment Terminated 🚨</h2>
+          <p>The appointment for <b>${user?.name}</b> has been cancelled by <b>${cancelledBy}</b>.</p>
+          <div ${moneyBox}>
+            <p><b>Slot Released:</b> ${booking.slot?.date} at ${booking.slot?.startTime}</p>
+            <p><b>Status:</b> Slot is now Available for others.</p>
+          </div>
+          <p><b>Services lost:</b> ${serviceNames}</p>
+        </div>
+      `;
+
+      // ⚡ Send Emails
+      await Promise.all([
+        user?.email && sendMail(user.email, "Booking Cancelled & Refund Initiated", userHtml),
+        salon?.owner?.email && sendMail(salon.owner.email, "⚠️ ALERT: Booking Cancelled", salonHtml),
+        adminEmail && sendMail(adminEmail, `🚨 Cancellation Alert: ${booking._id}`, userHtml),
+      ]);
+
+    } catch (mailErr) {
+      console.error("Cancellation Mail Error:", mailErr.message);
+    }
+
+    res.json({ message: "Booking cancelled", refundAmount, refundPercentage });
 
   } catch (err) {
     console.error(err);
