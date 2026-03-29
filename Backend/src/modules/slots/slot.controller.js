@@ -4,8 +4,8 @@ export const generateSlots = async (req, res) => {
   const { date } = req.body;
 
   const startTime = "09:00";
-  const endTime = "20:00";
-  const intervalMinutes = 30;
+  const endTime = "21:00";
+  const intervalMinutes = 45;
 
   const toMinutes = (time) => {
     const [h, m] = time.split(":").map(Number);

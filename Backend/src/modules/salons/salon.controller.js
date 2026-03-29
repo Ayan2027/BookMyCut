@@ -182,7 +182,28 @@ export const getSlotsBySalon = async (req, res) => {
       status: "AVAILABLE",
     }).sort({ startTime: 1 });
 
-    res.json(slots);
+    // 👉 Get current time
+    const now = new Date();
+
+    // 👉 Convert current date to YYYY-MM-DD
+    const today = now.toISOString().split("T")[0];
+
+    let filteredSlots = slots;
+
+    // 👉 Apply filter ONLY if selected date is today
+    if (date === today) {
+      // add 1 hour buffer
+      const currentMinutes = now.getHours() * 60 + now.getMinutes() + 60;
+
+      filteredSlots = slots.filter((slot) => {
+        const [hour, minute] = slot.startTime.split(":").map(Number);
+        const slotMinutes = hour * 60 + minute;
+
+        return slotMinutes >= currentMinutes;
+      });
+    }
+
+    res.json(filteredSlots);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

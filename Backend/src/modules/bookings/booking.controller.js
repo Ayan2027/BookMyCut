@@ -19,7 +19,7 @@ export const getSalonBookings = async (req, res) => {
       .populate("slot") // 🔥 ADD THIS
       .sort({ createdAt: -1 });
 
-    console.log("in getsalon bookings ", bookings);
+    
 
     res.json(bookings);
   } catch (err) {
