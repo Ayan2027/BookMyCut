@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSalonBookings, updateSalonBookingStatus } from "../../redux/salon/salonThunks";
+import {
+  fetchSalonBookings,
+  updateSalonBookingStatus,
+} from "../../redux/salon/salonThunks";
 import {
   Calendar,
   User as UserIcon,
@@ -11,6 +14,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import api from "../../services/api";
 
 export default function SalonBookings() {
   const dispatch = useDispatch();
@@ -28,6 +32,20 @@ export default function SalonBookings() {
       toast.success(`Protocol_${status}: Updated`);
     } else {
       toast.error("Override failed");
+    }
+  };
+  const onCancelBooking = async (id) => {
+    try {
+      const { data } = await api.patch(`/bookings/${id}/cancel`, {
+        cancelledBy: "SALON",
+      });
+
+      toast.success(`Cancelled + Refund ₹${data.refundAmount}`);
+
+      // refresh bookings
+      dispatch(fetchSalonBookings());
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Cancellation failed");
     }
   };
 
@@ -69,9 +87,9 @@ export default function SalonBookings() {
           </h1>
         </div>
 
-        {/* FILTERS - Added overflow-x-auto for mobile */}
+        {/* FILTERS */}
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 self-start max-w-full overflow-x-auto no-scrollbar">
-          {["ALL", "PENDING", "CONFIRMED", "ACCEPTED", "COMPLETED"].map((f) => (
+          {["ALL", "PENDING", "CONFIRMED", "ACCEPTED", "COMPLETED", "CANCELLED"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -100,7 +118,13 @@ export default function SalonBookings() {
           filteredList.map((booking) => (
             <div
               key={booking._id}
-              className="group bg-[#080808] border border-white/5 rounded-[1.5rem] p-5 md:p-6 flex flex-col md:flex-row items-center gap-6 hover:border-violet-500/30 transition-all relative overflow-hidden"
+              className={`group border rounded-[1.5rem] p-5 md:p-6 flex flex-col md:flex-row items-center gap-6 transition-all relative overflow-hidden ${
+                booking.status === "CANCELLED" 
+                  ? "bg-red-500/[0.02] border-red-500/20" 
+                  : booking.status === "COMPLETED" 
+                  ? "bg-emerald-500/[0.02] border-emerald-500/20" 
+                  : "bg-[#080808] border-white/5 hover:border-violet-500/30"
+              }`}
             >
               {/* STATUS LINE */}
               <div
@@ -108,10 +132,10 @@ export default function SalonBookings() {
                   booking.status === "PENDING" || booking.status === "CONFIRMED"
                     ? "bg-amber-500"
                     : booking.status === "ACCEPTED"
-                    ? "bg-sky-500"
-                    : booking.status === "COMPLETED"
-                    ? "bg-emerald-500"
-                    : "bg-red-500"
+                      ? "bg-sky-500"
+                      : booking.status === "COMPLETED"
+                        ? "bg-emerald-500"
+                        : "bg-red-500"
                 } opacity-50`}
               />
 
@@ -143,7 +167,9 @@ export default function SalonBookings() {
                   </span>
                 </div>
                 <h3 className="text-lg font-bold text-white uppercase tracking-tighter">
-                  {booking.user?.name || booking.user?.email?.split("@")[0] || "ANONYMOUS"}
+                  {booking.user?.name ||
+                    booking.user?.email?.split("@")[0] ||
+                    "ANONYMOUS"}
                 </h3>
                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3">
                   <p className="text-[11px] font-mono text-emerald-500">
@@ -152,27 +178,31 @@ export default function SalonBookings() {
                   <div className="hidden md:block h-1 w-1 bg-zinc-800 rounded-full" />
                   <p className="text-[11px] font-mono text-zinc-500 uppercase">
                     {booking.services?.[0]?.name || "CUSTOM_SERVICE"}
-                    {booking.services?.length > 1 && ` (+${booking.services.length - 1})`}
+                    {booking.services?.length > 1 &&
+                      ` (+${booking.services.length - 1})`}
                   </p>
                 </div>
               </div>
 
-              {/* REVENUE SHARE - Fixed: Removed 'hidden lg:block' */}
+              {/* REVENUE SHARE */}
               <div className="w-full md:w-auto px-6 py-4 md:py-0 border-y md:border-y-0 md:border-x border-white/5 flex flex-col items-center md:items-start">
                 <span className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest block mb-1">
                   Revenue_Share
                 </span>
-                <p className="text-xl font-black text-white italic">
-                  ₹{booking.subtotal || (booking.totalAmount - booking.platformFee)}
+                <p className={`text-xl font-black italic ${booking.status === "CANCELLED" ? "text-red-500/50 line-through" : "text-white"}`}>
+                  ₹
+                  {booking.subtotal ||
+                    booking.totalAmount - (booking.platformFee || 0)}
                 </p>
                 <p className="text-[8px] font-mono text-zinc-700">
                   Gross: ₹{booking.totalAmount}
                 </p>
               </div>
 
-              {/* ACTIONS - Fixed: Grid/Flex wrapping for small screens */}
+              {/* ACTIONS */}
               <div className="flex flex-wrap items-center justify-center gap-2 w-full md:w-auto">
-                {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
+                {(booking.status === "PENDING" ||
+                  booking.status === "CONFIRMED") && (
                   <button
                     onClick={() => onStatusChange(booking._id, "ACCEPTED")}
                     className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white text-black px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-violet-600 hover:text-white transition-all"
@@ -183,30 +213,55 @@ export default function SalonBookings() {
 
                 {booking.status === "ACCEPTED" && (
                   <button
-                    onClick={() => onStatusChange(booking._id, "COMPLETED")}
+                    onClick={() => {
+                      if (window.confirm("Confirm Completion: Has the customer received the service?")) {
+                        onStatusChange(booking._id, "COMPLETED")
+                      }
+                    }}
                     className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-5 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all"
                   >
                     <Scissors size={14} /> Complete_Service
                   </button>
                 )}
 
-                {(booking.status === "PENDING" || booking.status === "CONFIRMED" || booking.status === "ACCEPTED") && (
+                {(booking.status === "PENDING" ||
+                  booking.status === "CONFIRMED" ||
+                  booking.status === "ACCEPTED") && (
                   <button
-                    onClick={() => onStatusChange(booking._id, "CANCELLED")}
+                    onClick={() => {
+                      const confirmCancel = window.confirm(
+                        "⚠️ Are you sure you want to cancel this booking?\n\nFull refund will be issued to the customer.",
+                      );
+
+                      if (confirmCancel) {
+                        onCancelBooking(booking._id);
+                      }
+                    }}
                     className="p-3 bg-red-500/5 text-red-500 border border-red-500/10 rounded-xl hover:bg-red-500 hover:text-white transition-all"
-                    title="Reject Task"
+                    title="Cancel Booking"
                   >
                     <XCircle size={18} />
                   </button>
                 )}
 
+                {/* GREENISH FOR COMPLETED */}
                 {booking.status === "COMPLETED" && (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                     <CheckCircle2 size={14} className="text-emerald-500" />
-                    <span className="text-[9px] font-mono text-emerald-500 uppercase tracking-[0.2em] font-bold">
-                      Protocol_Finalized
+                    <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-[0.2em] font-bold">
+                      COMPLETED
                     </span>
                   </div>
+                )}
+
+                {/* RED WARNING FOR CANCELLED */}
+                {booking.status === "CANCELLED" && (
+                   <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+                   <ShieldAlert size={14} className="text-red-500" />
+                   <span className="text-[9px] font-mono text-red-400 uppercase tracking-[0.2em] font-bold">
+                     CANCELLED
+                   </span>
+                 </div>
                 )}
               </div>
             </div>
