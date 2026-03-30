@@ -181,20 +181,19 @@ export const getSlotsBySalon = async (req, res) => {
       status: "AVAILABLE",
     }).sort({ startTime: 1 });
 
-    // 👉 Get current time
+    // ✅ IST time
     const now = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
 
-    // 👉 Convert current date to YYYY-MM-DD
-    const today = now.toISOString().split("T")[0];
+    // ✅ IMPORTANT FIX (NO ISO)
+    const today = now.toLocaleDateString("en-CA");
 
     let filteredSlots = slots;
 
-    // 👉 Apply filter ONLY if selected date is today
     if (date === today) {
-      // add 1 hour buffer
-      const currentMinutes = now.getHours() * 60 + now.getMinutes() + 60;
+      const currentMinutes =
+        now.getHours() * 60 + now.getMinutes() + 60;
 
       filteredSlots = slots.filter((slot) => {
         const [hour, minute] = slot.startTime.split(":").map(Number);
@@ -209,7 +208,6 @@ export const getSlotsBySalon = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 export const getSalonById = async (req, res) => {
   try {
     const { salonId } = req.params;
