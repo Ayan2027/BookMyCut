@@ -66,6 +66,7 @@ export const createBooking = async (req, res) => {
   res.json(booking);
 };
 
+
 /* User gets own bookings */
 export const getMyBookings = async (req, res) => {
   const bookings = await Booking.find({ user: req.user._id })

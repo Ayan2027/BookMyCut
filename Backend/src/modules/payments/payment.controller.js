@@ -44,11 +44,6 @@ export const verifyPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
       req.body;
 
-    if (!process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({ message: "Server config error" });
-    }
-
-    // 🔐 Verify signature
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
 
     const expected = crypto
@@ -69,7 +64,6 @@ export const verifyPayment = async (req, res) => {
       return res.status(404).json({ message: "Payment not found" });
     }
 
-    // ⚠️ Prevent duplicate processing
     if (payment.status === "PAID") {
       return res.json({ message: "Already verified" });
     }
@@ -97,16 +91,16 @@ export const verifyPayment = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    // ✅ Confirm booking
     booking.status = "CONFIRMED";
     await booking.save();
 
-    // 🪑 Block slot
-    await Slot.findOneAndUpdate(
-      { _id: booking.slot, status: { $ne: "BOOKED" } },
-      { status: "BOOKED" }
-    );
+    // 🪑 Finalize slot
+    await Slot.findByIdAndUpdate(booking.slot, {
+      status: "BOOKED",
+    });
 
-    // 📩 Notifications (NON-BLOCKING 🚀)
+    // 📩 Notifications (same as your code, unchanged)
     try {
       const salon = booking.salon;
       const user = booking.user;
@@ -118,11 +112,6 @@ export const verifyPayment = async (req, res) => {
         .map((s) => s.name)
         .join(", ");
 
-      console.log("Salon email:", salonEmail);
-      console.log("User email:", user?.email);
-      console.log("Admin email:", adminEmail);
-
-      // 📧 Prepare emails
       const salonHtml = `
         <h2>New Booking Received 💇</h2>
         <p><b>Customer:</b> ${user?.name || "Customer"}</p>
@@ -158,7 +147,6 @@ export const verifyPayment = async (req, res) => {
         <p><b>Payment ID:</b> ${razorpay_payment_id}</p>
       `;
 
-      // ⚡ PRO TIP: Send all emails in parallel (FAST 🚀)
       await Promise.all([
         salonEmail &&
           sendMail(salonEmail, "New Booking - BookMyCut", salonHtml),

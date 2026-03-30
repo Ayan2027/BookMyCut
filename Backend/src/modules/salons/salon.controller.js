@@ -3,7 +3,6 @@ import Slot from "../slots/slot.model.js";
 import Booking from "../bookings/booking.model.js";
 import Payout from "../payouts/payout.model.js";
 
-
 /* Salon owner applies */
 /* Salon owner applies */
 export const applySalon = async (req, res) => {
@@ -183,7 +182,9 @@ export const getSlotsBySalon = async (req, res) => {
     }).sort({ startTime: 1 });
 
     // 👉 Get current time
-    const now = new Date();
+    const now = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    );
 
     // 👉 Convert current date to YYYY-MM-DD
     const today = now.toISOString().split("T")[0];
@@ -278,7 +279,6 @@ export const getSalonDailyEarnings = async (req, res) => {
   }
 };
 
-
 export const getSalonFinanceSummary = async (req, res) => {
   try {
     const salon = await Salon.findOne({ owner: req.user._id });
@@ -289,19 +289,19 @@ export const getSalonFinanceSummary = async (req, res) => {
       {
         $match: {
           salon: salon._id,
-          status: "COMPLETED"
-        }
+          status: "COMPLETED",
+        },
       },
       {
         $group: {
           _id: {
             year: { $year: "$updatedAt" },
             month: { $month: "$updatedAt" },
-            day: { $dayOfMonth: "$updatedAt" }
+            day: { $dayOfMonth: "$updatedAt" },
           },
-          earned: { $sum: "$subtotal" }
-        }
-      }
+          earned: { $sum: "$subtotal" },
+        },
+      },
     ]);
 
     // 2. Aggregation for Payouts
@@ -312,11 +312,11 @@ export const getSalonFinanceSummary = async (req, res) => {
           _id: {
             year: { $year: "$date" },
             month: { $month: "$date" },
-            day: { $dayOfMonth: "$date" }
+            day: { $dayOfMonth: "$date" },
           },
-          paid: { $sum: "$paidAmount" }
-        }
-      }
+          paid: { $sum: "$paidAmount" },
+        },
+      },
     ]);
 
     // 3. Totals
@@ -325,31 +325,32 @@ export const getSalonFinanceSummary = async (req, res) => {
 
     // 4. Merge into Daily Array
     const map = {};
-    earnings.forEach(e => {
+    earnings.forEach((e) => {
       const key = `${e._id.year}-${e._id.month}-${e._id.day}`;
       map[key] = { earned: e.earned, paid: 0 };
     });
 
-    payouts.forEach(p => {
+    payouts.forEach((p) => {
       const key = `${p._id.year}-${p._id.month}-${p._id.day}`;
       if (!map[key]) map[key] = { earned: 0, paid: 0 };
       map[key].paid = p.paid;
     });
 
-    const daily = Object.entries(map).map(([date, val]) => ({
-      date,
-      earned: val.earned,
-      paid: val.paid,
-      remaining: val.earned - val.paid
-    })).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const daily = Object.entries(map)
+      .map(([date, val]) => ({
+        date,
+        earned: val.earned,
+        paid: val.paid,
+        remaining: val.earned - val.paid,
+      }))
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     res.json({
       totalEarnings,
       totalPaid,
       balance: salon.balance || 0,
-      daily
+      daily,
     });
-
   } catch (err) {
     console.error("Finance Error:", err);
     res.status(500).json({ message: "Failed to load finance summary" });
