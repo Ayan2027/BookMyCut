@@ -47,7 +47,7 @@ export const createBooking = async (req, res) => {
   });
 
   const subtotal = serviceDocs.reduce((sum, s) => sum + s.price, 0);
-  const platformFee = Math.round(subtotal * 0.05); // 10% commission
+  const platformFee = Math.round(subtotal * 0.04); // 4% commission
   const totalAmount = subtotal + platformFee;
 
   const booking = await Booking.create({
@@ -65,7 +65,6 @@ export const createBooking = async (req, res) => {
   console.log("booking ", booking);
   res.json(booking);
 };
-
 
 /* User gets own bookings */
 export const getMyBookings = async (req, res) => {
@@ -126,10 +125,14 @@ export const updateBookingStatus = async (req, res) => {
 
 export const cancelBooking = async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    const { cancelledBy } = req.body; // USER or SALON
+    console.log(" ===== CANCEL BOOKING START =====");
 
-    // 1. Added full populate to get email details
+    const { bookingId } = req.params;
+    const { cancelledBy } = req.body;
+
+    console.log("📌 Booking ID:", bookingId);
+    console.log("📌 Cancelled By:", cancelledBy);
+
     const booking = await Booking.findById(bookingId).populate([
       "services",
       "user",
@@ -140,14 +143,35 @@ export const cancelBooking = async (req, res) => {
       },
     ]);
 
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (!booking) {
+      console.log("❌ Booking not found");
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    console.log("✅ Booking found:", booking._id);
+    console.log("📌 Booking status:", booking.status);
 
     if (booking.status === "COMPLETED") {
-      return res.status(400).json({ message: "Cannot cancel completed booking" });
+      console.log("❌ Cannot cancel completed booking");
+      return res
+        .status(400)
+        .json({ message: "Cannot cancel completed booking" });
     }
 
     const payment = await Payment.findOne({ booking: booking._id });
+
+    if (!payment) {
+      console.log("❌ Payment not found");
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    console.log("💰 Payment found");
+    console.log("📌 Razorpay Payment ID:", payment.razorpayPaymentId);
+    console.log("📌 Payment status:", payment.status);
+    console.log("📌 Payment amount:", payment.amount);
+
     if (payment.status === "REFUNDED") {
+      console.log("⚠️ Already refunded");
       return res.json({ message: "Already refunded" });
     }
 
@@ -155,11 +179,17 @@ export const cancelBooking = async (req, res) => {
     const slotTime = new Date(`${booking.slot.date}T${booking.slot.startTime}`);
     const now = new Date();
 
+    console.log("⏱️ Slot Time:", slotTime);
+    console.log("⏱️ Current Time:", now);
+
     if (now > slotTime && cancelledBy === "USER") {
+      console.log("❌ User trying to cancel after slot time");
       return res.status(400).json({ message: "Cannot cancel after slot time" });
     }
 
     const diffHours = (slotTime - now) / (1000 * 60 * 60);
+    console.log("⏱️ Hours before slot:", diffHours);
+
     let refundPercentage = 0;
 
     if (cancelledBy === "SALON") {
@@ -171,33 +201,67 @@ export const cancelBooking = async (req, res) => {
       else refundPercentage = 0;
     }
 
+    console.log("💸 Refund %:", refundPercentage * 100);
+
     const refundAmount = Math.floor(payment.amount * refundPercentage);
+    console.log("💸 Refund Amount (₹):", refundAmount);
+
     let refundResponse = null;
 
     // 💰 Razorpay refund
     if (refundAmount > 0) {
+      console.log("🚀 Initiating Razorpay refund...");
+
       try {
+        if (!payment.razorpayPaymentId) {
+          console.log("❌ Missing Razorpay Payment ID");
+          return res.status(400).json({ message: "Invalid payment reference" });
+        }
+        console.log("DB Payment ID:", payment.razorpayPaymentId);
+
         refundResponse = await razorpay.payments.refund(
           payment.razorpayPaymentId,
-          { amount: refundAmount * 100 }
+          { amount: refundAmount * 100 },
         );
+
+        console.log("✅ Refund Success:", refundResponse);
       } catch (err) {
-        console.error("Refund failed:", err);
-        return res.status(500).json({ message: "Refund failed at gateway" });
+        console.error("❌ REFUND FAILED FULL:", err?.error || err);
+
+        return res.status(500).json({
+          message: err?.error?.description || "Refund failed at gateway",
+        });
       }
+    } else {
+      console.log("⚠️ No refund applicable");
     }
 
     // 💾 Update DB
     payment.refundAmount = refundAmount;
     payment.refundId = refundResponse?.id || null;
-    payment.status = refundAmount === payment.amount ? "REFUNDED" : (refundAmount > 0 ? "PARTIAL_REFUND" : payment.status);
+    payment.status =
+      refundAmount === payment.amount
+        ? "REFUNDED"
+        : refundAmount > 0
+          ? "PARTIAL_REFUND"
+          : payment.status;
+
     await payment.save();
+    console.log("💾 Payment updated");
 
     booking.status = "CANCELLED";
     booking.cancelledBy = cancelledBy;
     await booking.save();
 
-    await Slot.findByIdAndUpdate(booking.slot._id, { status: "AVAILABLE" });
+    console.log("📦 Booking updated");
+
+    await Slot.findByIdAndUpdate(booking.slot._id, {
+      status: "AVAILABLE",
+    });
+
+    console.log("🪑 Slot released");
+
+    console.log("📩 Sending notifications...");
 
     // 📩 NOTIFICATIONS (NON-BLOCKING 🚀)
     try {
@@ -205,54 +269,73 @@ export const cancelBooking = async (req, res) => {
       const user = booking.user;
       const adminEmail = process.env.ADMIN_EMAIL;
       const serviceNames = booking.services.map((s) => s.name).join(", ");
-      
+
       const emailStyle = `style="font-family: sans-serif; padding: 20px; border: 2px solid #ff4d4d; border-radius: 10px;"`;
       const headerStyle = `style="color: #d32f2f; font-size: 24px; text-transform: uppercase; font-weight: 900;"`;
       const moneyBox = `style="background: #fff5f5; padding: 15px; border-left: 5px solid #d32f2f; margin: 15px 0;"`;
 
       // 📧 USER EMAIL
       const userHtml = `
-        <div ${emailStyle}>
-          <h2 ${headerStyle}>Booking Cancelled ❌</h2>
-          <p>Hi <b>${user?.name}</b>, your booking at <b>${salon?.name}</b> has been terminated.</p>
-          <div ${moneyBox}>
-            <p style="margin: 0; color: #d32f2f;"><b>REFUND DETAILS:</b></p>
-            <p>Refund Amount: <b>₹${refundAmount}</b> (${refundPercentage * 100}% of total)</p>
-            <p style="font-size: 12px; color: #666;">Note: It may take 5-7 business days to reflect in your account.</p>
-          </div>
-          <p><b>Original Booking ID:</b> ${booking._id}</p>
-          <p><b>Service:</b> ${serviceNames}</p>
-        </div>
-      `;
+    <div ${emailStyle}>
+      <h2 ${headerStyle}>Booking Cancelled ❌</h2>
+      <p>Hi <b>${user?.name}</b>, your booking at <b>${salon?.name}</b> has been terminated.</p>
+      <div ${moneyBox}>
+        <p style="margin: 0; color: #d32f2f;"><b>REFUND DETAILS:</b></p>
+        <p>Refund Amount: <b>₹${refundAmount}</b> (${refundPercentage * 100}% of total)</p>
+        <p style="font-size: 12px; color: #666;">Note: It may take 5-7 business days to reflect in your account.</p>
+      </div>
+      <p><b>Original Booking ID:</b> ${booking._id}</p>
+      <p><b>Service:</b> ${serviceNames}</p>
+    </div>
+  `;
 
       // 📧 SALON EMAIL
       const salonHtml = `
-        <div ${emailStyle}>
-          <h2 ${headerStyle}>Appointment Terminated 🚨</h2>
-          <p>The appointment for <b>${user?.name}</b> has been cancelled by <b>${cancelledBy}</b>.</p>
-          <div ${moneyBox}>
-            <p><b>Slot Released:</b> ${booking.slot?.date} at ${booking.slot?.startTime}</p>
-            <p><b>Status:</b> Slot is now Available for others.</p>
-          </div>
-          <p><b>Services lost:</b> ${serviceNames}</p>
-        </div>
-      `;
+    <div ${emailStyle}>
+      <h2 ${headerStyle}>Appointment Terminated 🚨</h2>
+      <p>The appointment for <b>${user?.name}</b> has been cancelled by <b>${cancelledBy}</b>.</p>
+      <div ${moneyBox}>
+        <p><b>Slot Released:</b> ${booking.slot?.date} at ${booking.slot?.startTime}</p>
+        <p><b>Status:</b> Slot is now Available for others.</p>
+      </div>
+      <p><b>Services lost:</b> ${serviceNames}</p>
+    </div>
+  `;
 
-      // ⚡ Send Emails
+      // ⚡ Send Emails (HTML)
       await Promise.all([
-        user?.email && sendMail(user.email, "Booking Cancelled & Refund Initiated", userHtml),
-        salon?.owner?.email && sendMail(salon.owner.email, "⚠️ ALERT: Booking Cancelled", salonHtml),
-        adminEmail && sendMail(adminEmail, `🚨 Cancellation Alert: ${booking._id}`, userHtml),
+        user?.email &&
+          sendMail(
+            user.email,
+            "Booking Cancelled & Refund Initiated",
+            userHtml,
+          ),
+
+        salon?.owner?.email &&
+          sendMail(salon.owner.email, "⚠️ ALERT: Booking Cancelled", salonHtml),
+
+        adminEmail &&
+          sendMail(
+            adminEmail,
+            `🚨 Cancellation Alert: ${booking._id}`,
+            userHtml,
+          ),
       ]);
 
+      console.log("✅ Styled Emails sent");
     } catch (mailErr) {
-      console.error("Cancellation Mail Error:", mailErr.message);
+      console.error("❌ Mail Error:", mailErr.message);
     }
 
-    res.json({ message: "Booking cancelled", refundAmount, refundPercentage });
+    console.log("🔥 ===== CANCEL BOOKING END =====");
 
+    res.json({
+      message: "Booking cancelled",
+      refundAmount,
+      refundPercentage,
+    });
   } catch (err) {
-    console.error(err);
+    console.error("❌ GLOBAL ERROR:", err);
     res.status(500).json({ message: "Cancellation failed" });
   }
 };

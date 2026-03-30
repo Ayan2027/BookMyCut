@@ -55,7 +55,7 @@ export default function SalonLayout() {
         <div className="flex items-center gap-3">
 
           {/* 💰 FINANCE / EARNINGS */}
-          <NavLink 
+          {/* <NavLink 
             to="/salon/finance" 
             className={({ isActive }) => `
               flex items-center gap-2 px-4 py-2.5 rounded-2xl border transition-all duration-300
@@ -69,7 +69,7 @@ export default function SalonLayout() {
             <span className="hidden lg:block text-[10px] font-mono uppercase tracking-widest">
               Earnings
             </span>
-          </NavLink>
+          </NavLink> */}
 
           {/* SUPPORT */}
           <NavLink 
