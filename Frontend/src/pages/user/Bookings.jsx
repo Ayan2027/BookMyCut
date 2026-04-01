@@ -21,14 +21,21 @@ import api from "../../services/api";
 // --- Advanced Status Configuration ---
 const statusConfig = {
   PENDING: {
-    label: "PENDING",
+    label: "INITIATED", // 🔁 better meaning (payment not done)
     color: "text-amber-400",
     glow: "shadow-amber-500/20",
     bg: "bg-amber-400/10",
     icon: Timer,
   },
+  CONFIRMED: {
+    label: "AWAITING APPROVAL", // 🔁 payment done, waiting salon
+    color: "text-yellow-400",
+    glow: "shadow-yellow-500/20",
+    bg: "bg-yellow-400/10",
+    icon: Timer,
+  },
   ACCEPTED: {
-    label: "CONFIRMED",
+    label: "ACCEPTED", // 🔁 NOW correct meaning
     color: "text-emerald-400",
     glow: "shadow-emerald-500/20",
     bg: "bg-emerald-400/10",
@@ -97,14 +104,16 @@ export default function UserBookings() {
           ) : (
             <div className="grid gap-8">
               <AnimatePresence>
-                {bookings?.map((b, index) => (
-                  <BookingCard
-                    key={b._id}
-                    booking={b}
-                    index={index}
-                    refresh={() => dispatch(fetchMyBookings())}
-                  />
-                ))}
+                {bookings
+                  ?.filter((b) => b.status !== "PENDING") // 🔥 hide unpaid bookings
+                  .map((b, index) => (
+                    <BookingCard
+                      key={b._id}
+                      booking={b}
+                      index={index}
+                      refresh={() => dispatch(fetchMyBookings())}
+                    />
+                  ))}
               </AnimatePresence>
             </div>
           )}
@@ -188,7 +197,7 @@ function BookingCard({ booking, refresh, index }) {
 
               <div>
                 <div
-                  className={`flex items-center gap-2 mb-2 ${config.color} font-mono text-[10px] tracking-tighter uppercase font-bold`}
+                  className={`flex items-center gap-2 mb-2 ${config.color} font-mono text-[15px] tracking-tighter uppercase font-bold`}
                 >
                   <StatusIcon size={12} />
                   <span className="bg-white/5 px-2 py-0.5 rounded-full">

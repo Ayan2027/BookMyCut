@@ -7,6 +7,7 @@ import {
   updateBookingStatus,
   getSalonBookings,
   cancelBooking, // 1. Import the controller function
+  deleteBooking
 } from "./booking.controller.js";
 
 const router = express.Router();
@@ -21,7 +22,7 @@ router.get("/me", auth, getMyBookings);
  * @access  Private
  */
 router.patch("/:bookingId/cancel", auth, cancelBooking); 
-
+router.delete("/:bookingId", auth, deleteBooking);
 
 // --- SALON OWNER ROUTES ---
 router.get("/salons/me", auth, approvedSalonOnly, getSalonBookings);

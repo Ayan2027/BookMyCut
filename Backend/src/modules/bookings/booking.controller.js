@@ -339,3 +339,23 @@ export const cancelBooking = async (req, res) => {
     res.status(500).json({ message: "Cancellation failed" });
   }
 };
+
+
+export const deleteBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: "Not found" });
+
+    // 🔒 only delete if not paid
+    if (booking.status !== "PENDING") {
+      return res.status(400).json({ message: "Cannot delete booking" });
+    }
+
+    await booking.deleteOne();
+    res.json({ message: "Booking deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed" });
+  }
+};
