@@ -51,11 +51,11 @@ export default function Login() {
               <Fingerprint className="text-violet-400" size={28} />
             </div>
             <h1 className="text-5xl font-black tracking-tighter italic bg-gradient-to-b from-white to-zinc-600 bg-clip-text text-transparent">
-              QUICKTRIM
+              BookMyCut
             </h1>
-            <p className="text-zinc-500 font-mono text-[10px] tracking-[0.4em] mt-2 uppercase">
+            {/* <p className="text-zinc-500 font-mono text-[10px] tracking-[0.4em] mt-2 uppercase">
               Terminal Access v2.0
-            </p>
+            </p> */}
           </div>
 
           {/* 4. AUTH FORM */}
@@ -99,7 +99,7 @@ export default function Login() {
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
                   <>
-                    Authorize
+                    Login
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -112,7 +112,7 @@ export default function Login() {
             <p className="text-sm text-zinc-500 font-medium">
               Awaiting credentials?{" "}
               <Link to="/signup" className="text-white hover:text-violet-400 transition-colors underline underline-offset-4">
-                Create Identity
+                Sign Up
               </Link>
             </p>
           </div>

@@ -86,14 +86,14 @@ export default function Signup() {
                 active={form.role === "USER"} 
                 onClick={() => setForm({...form, role: "USER"})}
                 icon={<User size={18} />}
-                label="Client"
+                label="User"
                 description="Booking services"
               />
               <RoleCard 
                 active={form.role === "SALON"} 
                 onClick={() => setForm({...form, role: "SALON"})}
                 icon={<Scissors size={18} />}
-                label="Partner"
+                label="Salon"
                 description="Providing services"
               />
             </div>
@@ -132,7 +132,7 @@ export default function Signup() {
               <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-white transition-colors">
                 {loading ? <Loader2 className="animate-spin" /> : (
                   <>
-                    Send OTP Signal
+                    Send OTP 
                     <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
