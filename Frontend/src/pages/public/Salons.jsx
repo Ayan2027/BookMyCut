@@ -17,7 +17,7 @@ export default function Salons() {
     <div className="min-h-screen bg-[#030303] text-zinc-100 p-6 lg:p-12 selection:bg-violet-500/30">
       
       {/* 1. DISCOVERY HEADER */}
-      <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-8 max-w-7xl mx-auto mb-16">
+      <header className="relative flex flex-col md:flex-row md:items-end justify-between gap-8 max-w-7xl mx-auto mb-5">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Sparkles className="text-violet-500 animate-pulse" size={16} />
@@ -26,12 +26,12 @@ export default function Salons() {
           <h1 className="text-6xl font-black italic tracking-tighter bg-gradient-to-b from-white via-white to-zinc-800 bg-clip-text text-transparent uppercase">
             Explore
           </h1>
-          <p className="max-w-md text-zinc-500 text-xs leading-relaxed italic opacity-70">
-            Calibration of personal aesthetic through high-fidelity grooming protocols.
+          <p className="max-w-md text-zinc-100 text-2xl leading-relaxed italic opacity-70">
+            More Salons Will Be Added Soon...
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 rounded-2xl p-2 backdrop-blur-xl">
+        {/* <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 rounded-2xl p-2 backdrop-blur-xl">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
             <input 
@@ -42,7 +42,7 @@ export default function Salons() {
           <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
             <Filter size={16} className="text-violet-400" />
           </button>
-        </div>
+        </div> */}
       </header>
 
       {/* 2. MAIN GRID */}
