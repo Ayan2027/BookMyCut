@@ -27,6 +27,8 @@ app.get("/", (req, res) => {
   res.send("BookMyCut API running 🚀");
 });
 
+app.get("/ping", (req, res) => res.send("ok"));
+
 app.use("/auth", authRoutes);
 app.use("/salons", salonRoutes);
 app.use("/admin", adminRoutes);
