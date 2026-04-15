@@ -1,5 +1,5 @@
 
-<h1 align="center">✨ ✂️ BookMyCut – Full-Stack Salon Booking Platform ✨</h1>
+<h1 align="center">✂️ BookMyCut – Full-Stack Salon Booking Platform</h1>
 
 ![Demo App](./assets/image.png)
 
@@ -9,7 +9,7 @@ A production-ready MERN stack application that enables users to book salon servi
 ---
 
 ## 🚀 Live Demo
-🔗 https://your-live-link.com
+🔗 https://book-my-cut-three.vercel.app/
 
 ---
 
