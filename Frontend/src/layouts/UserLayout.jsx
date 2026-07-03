@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   Globe, // Added for Support
-  LifeBuoy // Added for Help context
+  LifeBuoy, // Added for Help context
+  Sparkles   // add Sparkles here
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfile } from "../redux/auth/authThunks";
@@ -23,6 +24,7 @@ export default function UserLayout() {
 
   // Close sidebar automatically when navigating on mobile
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileMenuOpen(false);
   }, [location]);
 
@@ -36,7 +38,7 @@ export default function UserLayout() {
 
   return (
     <div className="flex min-h-screen bg-[#050505] text-zinc-100 overflow-hidden relative">
-      
+
       {/* MOBILE HAMBURGER BUTTON */}
       <button
         onClick={() => setIsMobileMenuOpen(true)}
@@ -91,6 +93,11 @@ export default function UserLayout() {
             icon={<Compass size={18} />}
             label="Discover"
             end={true}
+          />
+          <SidebarLink
+            to="/ai"
+            icon={<Sparkles size={18} />}
+            label="AI Hairstyle"
           />
           <SidebarLink
             to="/app/bookings"
@@ -175,10 +182,9 @@ function SidebarLink({ to, icon, label, end = false }) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-4 py-3 rounded-2xl transition group relative ${
-          isActive
-            ? "bg-violet-600 text-white shadow-lg shadow-violet-900/20"
-            : "text-zinc-500 hover:text-white hover:bg-white/5"
+        `flex items-center gap-3 px-4 py-3 rounded-2xl transition group relative ${isActive
+          ? "bg-violet-600 text-white shadow-lg shadow-violet-900/20"
+          : "text-zinc-500 hover:text-white hover:bg-white/5"
         }`
       }
     >
@@ -186,15 +192,15 @@ function SidebarLink({ to, icon, label, end = false }) {
         {icon}
       </div>
       <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
-      
+
       {/* Active Indicator Glow */}
-      <NavLink 
-        to={to} 
-        className={({ isActive }) => 
-          isActive 
-            ? "absolute left-0 w-1 h-4 bg-white rounded-r-full" 
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          isActive
+            ? "absolute left-0 w-1 h-4 bg-white rounded-r-full"
             : "hidden"
-        } 
+        }
       />
     </NavLink>
   );
