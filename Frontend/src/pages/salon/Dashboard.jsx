@@ -20,7 +20,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { salon } = useSelector((s) => s.salon);
   const { list: services } = useSelector((s) => s.service);
-  const { list: slots } = useSelector((s) => s.slot);
+  
 
   const isApproved = salon?.status === "APPROVED";
 

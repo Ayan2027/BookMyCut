@@ -94,6 +94,7 @@ export default function Apply() {
       } else {
         toast.error("Protocol failed. Check your data.");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       toast.error("Network synchronization error.");
     }

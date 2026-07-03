@@ -14,7 +14,7 @@ const slotSlice = createSlice({
       .addCase(fetchMySlots.fulfilled, (state, action) => {
         state.list = action.payload;
       })
-      .addCase(generateSlots.fulfilled, (state) => {
+      .addCase(generateSlots.fulfilled, () => {
         // no direct update
       })
       .addCase(deleteSlot.fulfilled, (state, action) => {

@@ -38,6 +38,7 @@ export default function AdminSalons() {
     try {
       const res = await adminService.getSalonsByStatus(status);
       setList(res.data);
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setList([]);
     } finally {
@@ -175,7 +176,7 @@ function SalonRegistryRow({ salon, onApprove, onReject, onSuspend }) {
   );
 }
 
-function AdminButton({ onClick, icon: Icon, label, color }) {
+function AdminButton({ onClick, label, color }) {
   return (
     <button 
       onClick={onClick}
