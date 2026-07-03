@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion"; // Add: npm install framer-motion
+import {  AnimatePresence } from "framer-motion"; // Add: npm install framer-motion
 import {
   Calendar,
   Clock,
@@ -124,7 +124,7 @@ export default function UserBookings() {
 }
 
 function BookingCard({ booking, refresh, index }) {
-  const [hover, setHover] = useState(0);
+  const [hover] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [submitting, setSubmitting] = useState(false);
 

@@ -109,6 +109,7 @@ export default function SalonDetails() {
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       setProcessing(false);
       setStatusText("System Error");

@@ -304,7 +304,7 @@ function ApplicationRow({ salon, onApprove, onReject, onSuspend }) {
   );
 }
 
-function ActionButton({ onClick, label, icon: Icon, color }) {
+function ActionButton({ onClick, label, color }) {
   return (
     <button
       onClick={onClick}

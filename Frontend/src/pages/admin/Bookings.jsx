@@ -59,7 +59,7 @@ export default function UserBookings() {
 }
 
 function BookingCard({ booking, refresh }) {
-  const [hover, setHover] = useState(0);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const config = statusConfig[booking.status] || statusConfig.PENDING;
@@ -72,6 +72,7 @@ function BookingCard({ booking, refresh }) {
     try {
       await api.post("/reviews", { bookingId: booking._id, rating: val });
       await refresh();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       console.error("Rating failed");
     } finally {
@@ -83,6 +84,7 @@ function BookingCard({ booking, refresh }) {
     try {
       await api.patch(`/bookings/${booking._id}/status`, { status });
       refresh();
+    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       console.error("Status update failed");
     }
